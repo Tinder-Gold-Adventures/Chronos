@@ -5,6 +5,7 @@ import org.springframework.boot.Banner
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import tinder.gold.adventures.chronos.mqtt.MqttExt
 
 @SpringBootApplication
 class ChronosApplication {
@@ -12,9 +13,11 @@ class ChronosApplication {
         private val Logger = KotlinLogging.logger {}
     }
 
-	init {
-		Logger.info { "Initializing Chronos..." }
-	}
+    init {
+        Logger.info { "Initializing Chronos..." }
+        Logger.info { "Broker url: ${MqttExt.Broker.getConnectionString()}" }
+    }
+
 }
 
 fun main(args: Array<String>) {

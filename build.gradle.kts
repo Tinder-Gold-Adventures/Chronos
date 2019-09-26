@@ -22,6 +22,10 @@ dependencies {
     implementation(spring("spring-boot-starter"))
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
+
+//    implementation("org.slf4j:slf4j-simple:1.7.26")
+    implementation("io.github.microutils:kotlin-logging:1.7.6")
+
     testImplementation(spring("spring-boot-starter-test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
 	testImplementation(kotlin("test"))

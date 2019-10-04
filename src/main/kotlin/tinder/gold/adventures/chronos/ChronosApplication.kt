@@ -6,16 +6,21 @@ import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import tinder.gold.adventures.chronos.mqtt.MqttExt
+import javax.annotation.PostConstruct
 
 @SpringBootApplication
 class ChronosApplication {
     companion object {
-        private val Logger = KotlinLogging.logger {}
+        val Logger = KotlinLogging.logger {}
     }
 
     init {
         Logger.info { "Initializing Chronos..." }
-        Logger.info { "Broker url: ${MqttExt.Broker.getConnectionString()}" }
+    }
+
+    @PostConstruct
+    fun start() {
+        MqttExt.Client.connectBroker()
     }
 
 }

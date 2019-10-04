@@ -1,11 +1,9 @@
 package tinder.gold.adventures.chronos.model.mqtt
 
 class MqttBroker(
-        val protocol: MqttProtocol,
         val host: String,
-        val port: Int,
-        val auth: MqttAuth
+        val port: Int
 ) {
     fun getConnectionString() =
-            "$protocol://$host:$port"
+            "tcp://$host:$port"
 }

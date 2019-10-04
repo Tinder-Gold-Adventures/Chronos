@@ -16,6 +16,7 @@ java.apply {
 
 repositories {
     mavenCentral()
+    maven(url="https://repo.eclipse.org/content/repositories/paho-releases/")
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
 
 //    implementation("org.slf4j:slf4j-simple:1.7.26")
     implementation("io.github.microutils:kotlin-logging:1.7.6")
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0")
 
     testImplementation(spring("spring-boot-starter-test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
@@ -53,5 +55,6 @@ tasks.test {
 
 fun spring(module: String, version: String? = null): Any =
         quickDependency("org.springframework.boot", module, version)
+
 fun quickDependency(group: String, module: String, version: String? = null): Any =
         "$group:$module${version?.let { ":$version" } ?: ""}"

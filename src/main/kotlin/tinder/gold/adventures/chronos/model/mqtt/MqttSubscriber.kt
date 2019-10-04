@@ -7,9 +7,7 @@ class MqttSubscriber(
         val qualityOfServiceLevel: QoSLevel = QoSLevel.QOS0
 ) {
 
-    companion object {
-        private val Logger = KotlinLogging.logger { }
-    }
+    private val logger = KotlinLogging.logger { }
 
     fun receive() {
         // TODO: listen on this topic, propagate through events
@@ -27,10 +25,10 @@ class MqttSubscriber(
     fun receiveSubAck(returnCode: Int) {
         // receive an ack code
         when (returnCode) {
-            0 -> Logger.info { "Subscription acknowledged (${QoSLevel.QOS0})" }
-            1 -> Logger.info { "Subscription acknowledged (${QoSLevel.QOS1})" }
-            2 -> Logger.info { "Subscription acknowledged (${QoSLevel.QOS2})" }
-            128 -> Logger.info { "Subscription failed (return code 128)" }
+            0 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS0})" }
+            1 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS1})" }
+            2 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS2})" }
+            128 -> logger.info { "Subscription failed (return code 128)" }
         }
     }
 }

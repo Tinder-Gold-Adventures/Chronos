@@ -3,6 +3,10 @@ package tinder.gold.adventures.chronos.model.mqtt
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttClient
 
+/**
+ * Defines a publisher for an MqttConnection
+ * It can be used to publish messages to a topic using a client
+ */
 class MqttPublisher(
         val topic: MqttTopic
 ) {

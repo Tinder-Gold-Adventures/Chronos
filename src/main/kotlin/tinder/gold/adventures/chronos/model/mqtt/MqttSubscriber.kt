@@ -1,28 +1,31 @@
 package tinder.gold.adventures.chronos.model.mqtt
 
 import mu.KotlinLogging
+import org.eclipse.paho.client.mqttv3.MqttClient
+import org.eclipse.paho.client.mqttv3.MqttMessage
 
+/**
+ * Defines a subscriber for an MqttConnection
+ * It can be used to listen for messages using a client
+ */
 class MqttSubscriber(
-        val topic: MqttTopic,
-        val qualityOfServiceLevel: QoSLevel = QoSLevel.QOS0
+        val mqttTopic: MqttTopic
 ) {
 
     private val logger = KotlinLogging.logger { }
 
-    fun receive() {
-        // TODO: listen on this topic, propagate through events
+    fun MqttClient.subscribe(qos: QoSLevel = QoSLevel.QOS0, listener: (String, MqttMessage) -> Unit) {
+        this.subscribe(mqttTopic.topic, qos.asInt()) { topic: String, mqttMessage: MqttMessage ->
+            receiveSubAck(mqttMessage.qos)
+            listener(topic, mqttMessage)
+        }
     }
 
-    // take this subscriber and subscribe to the topic
-    fun subscribe() {
-        // TODO
+    fun MqttClient.unsubscribe() {
+        this.unsubscribe(mqttTopic.topic)
     }
 
-    fun unsubscribe() {
-        // TODO
-    }
-
-    fun receiveSubAck(returnCode: Int) {
+    private fun receiveSubAck(returnCode: Int) {
         // receive an ack code
         when (returnCode) {
             0 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS0})" }

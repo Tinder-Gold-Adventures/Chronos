@@ -2,6 +2,7 @@ package tinder.gold.adventures.chronos.mqtt.job
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
@@ -38,6 +39,10 @@ class MqttBrokerConnector(
             isCleanSession = true
             isAutomaticReconnect = true
         }
+        internalConnect()
+    }
+
+    private suspend fun internalConnect() {
         try {
             token = client.connect(connectOptions, null, object : IMqttActionListener {
                 override fun onSuccess(token: IMqttToken) {
@@ -52,12 +57,15 @@ class MqttBrokerConnector(
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    exception?.printStackTrace()
+                    throw java.lang.Exception(exception?.cause)
                 }
 
             })
         } catch (err: Exception) {
             err.printStackTrace()
+            logger.info { "Waiting 5 seconds before reconnecting..." }
+            delay(5000L)
+            internalConnect()
         }
     }
 

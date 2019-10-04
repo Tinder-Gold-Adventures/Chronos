@@ -1,6 +1,6 @@
 package tinder.gold.adventures.chronos.model.mqtt
 
-import tinder.gold.adventures.chronos.ChronosApplication
+import org.eclipse.paho.client.mqttv3.MqttTopic
 
 /**
  * Defines an MqttTopic that will be verified for validity
@@ -9,23 +9,16 @@ data class MqttTopic(
         val name: String
 ) {
 
-    val isValid: Boolean
+    var isValid: Boolean
+        private set
 
     init {
-        isValid = verify()
-    }
-
-    fun verify(): Boolean {
+        isValid = true
         try {
-            // Ensure the utf-8 topic is valid
-            assert(name.isNotEmpty())
-            assert(!name.startsWith("/"))
-            assert(name.toByteArray(Charsets.UTF_8).isNotEmpty())
-        } catch (err: Exception) {
-            ChronosApplication.Logger.error(err.cause) { "Exception while verifying MqttTopic" }
-            return false
+            MqttTopic.validate(name, true)
+        } catch (_: java.lang.Exception) {
+            isValid = false
         }
-        return true
     }
 
     fun getPublisher(): MqttPublisher = MqttPublisher(this)

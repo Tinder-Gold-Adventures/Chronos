@@ -5,7 +5,9 @@ import org.springframework.boot.Banner
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import tinder.gold.adventures.chronos.model.mqtt.MqttConnection
 import tinder.gold.adventures.chronos.mqtt.MqttExt
+import tinder.gold.adventures.chronos.mqtt.job.MqttBrokerConnector
 import javax.annotation.PostConstruct
 
 @SpringBootApplication
@@ -20,7 +22,8 @@ class ChronosApplication {
 
     @PostConstruct
     fun start() {
-        MqttExt.Client.connectBroker()
+        val brokerConnector = MqttBrokerConnector(MqttConnection(MqttExt.Connection.Host, MqttExt.Connection.Port))
+        brokerConnector.connect()
     }
 
 }

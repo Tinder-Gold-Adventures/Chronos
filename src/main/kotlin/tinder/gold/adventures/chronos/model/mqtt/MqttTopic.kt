@@ -6,7 +6,7 @@ import tinder.gold.adventures.chronos.ChronosApplication
  * Defines an MqttTopic that will be verified for validity
  */
 data class MqttTopic(
-        val topic: String
+        val name: String
 ) {
 
     val isValid: Boolean
@@ -18,9 +18,9 @@ data class MqttTopic(
     fun verify(): Boolean {
         try {
             // Ensure the utf-8 topic is valid
-            assert(topic.isNotEmpty())
-            assert(!topic.startsWith("/"))
-            assert(topic.toByteArray(Charsets.UTF_8).isNotEmpty())
+            assert(name.isNotEmpty())
+            assert(!name.startsWith("/"))
+            assert(name.toByteArray(Charsets.UTF_8).isNotEmpty())
         } catch (err: Exception) {
             ChronosApplication.Logger.error(err.cause) { "Exception while verifying MqttTopic" }
             return false

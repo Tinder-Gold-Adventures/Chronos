@@ -1,7 +1,7 @@
 package tinder.gold.adventures.chronos.model.mqtt
 
 import mu.KotlinLogging
-import org.eclipse.paho.client.mqttv3.MqttClient
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
 /**
@@ -9,20 +9,20 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
  * It can be used to listen for messages using a client
  */
 class MqttSubscriber(
-        val mqttTopic: MqttTopic
+        val topic: MqttTopic
 ) {
 
     private val logger = KotlinLogging.logger { }
 
-    fun MqttClient.subscribe(qos: QoSLevel = QoSLevel.QOS0, listener: (String, MqttMessage) -> Unit) {
-        this.subscribe(mqttTopic.topic, qos.asInt()) { topic: String, mqttMessage: MqttMessage ->
+    fun IMqttAsyncClient.subscribe(qos: QoSLevel = QoSLevel.QOS0, listener: (String, MqttMessage) -> Unit) {
+        this.subscribe(topic.name, qos.asInt()) { topic: String, mqttMessage: MqttMessage ->
             receiveSubAck(mqttMessage.qos)
             listener(topic, mqttMessage)
         }
     }
 
-    fun MqttClient.unsubscribe() {
-        this.unsubscribe(mqttTopic.topic)
+    fun IMqttAsyncClient.unsubscribe() {
+        this.unsubscribe(topic.name)
     }
 
     private fun receiveSubAck(returnCode: Int) {

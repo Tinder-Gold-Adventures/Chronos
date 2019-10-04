@@ -1,37 +1,40 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    kotlin("jvm") version "1.3.50"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.3.50"
     id("org.springframework.boot") version "2.1.8.RELEASE"
     id("io.spring.dependency-management") version "1.0.8.RELEASE"
-    kotlin("jvm") version "1.2.71"
     kotlin("plugin.spring") version "1.2.71"
 }
 
 group = "tinder.gold.adventures"
 version = "0.0.1-SNAPSHOT"
 java.apply {
-	sourceCompatibility = JavaVersion.VERSION_1_8
-	targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 repositories {
     mavenCentral()
-    maven(url="https://repo.eclipse.org/content/repositories/paho-releases/")
+    maven(url = "https://repo.eclipse.org/content/repositories/paho-releases/")
+    maven(url = "https://plugins.gradle.org/m2/")
 }
 
 dependencies {
+    implementation(kotlin("allopen:1.3.50"))
     implementation(spring("spring-boot-starter"))
     implementation(kotlin("reflect"))
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
 
-//    implementation("org.slf4j:slf4j-simple:1.7.26")
     implementation("io.github.microutils:kotlin-logging:1.7.6")
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0")
 
     testImplementation(spring("spring-boot-starter-test"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
-	testImplementation(kotlin("test"))
-	testImplementation(kotlin("test-junit"))
+    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit"))
 }
 
 tasks.withType<KotlinCompile> {
@@ -42,8 +45,8 @@ tasks.withType<KotlinCompile> {
 }
 
 tasks.bootRun {
-	main = "$group.ChronosApplication.kt"
-	args("--spring.profiles.active=local")
+    main = "$group.ChronosApplication.kt"
+    args("--spring.profiles.active=local")
 }
 
 tasks.test {

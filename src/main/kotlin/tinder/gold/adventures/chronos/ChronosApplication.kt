@@ -22,7 +22,8 @@ class ChronosApplication {
 
     @PostConstruct
     fun start() {
-        val brokerConnector = MqttBrokerConnector(MqttConnection(MqttExt.Connection.Host, MqttExt.Connection.Port))
+        val connection = MqttConnection(MqttExt.Connection.Host, MqttExt.Connection.Port)
+        val brokerConnector = MqttBrokerConnector(connection)
         brokerConnector.connect()
     }
 

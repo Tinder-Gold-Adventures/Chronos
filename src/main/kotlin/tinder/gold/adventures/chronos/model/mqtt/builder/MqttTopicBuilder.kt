@@ -28,5 +28,16 @@ object MqttTopicBuilder {
         BARRIER
     }
 
+    fun getTopicString(subject: MqttTopicBuilderSubject, direction: CardinalDirection, componentId: Int): String {
+        val subgroupId = try {
+            subject.getSubgroupId(direction)
+        } catch (_: Exception) {
+            -1
+        }
+        val hasSubgroup = subgroupId != -1
+        return if (hasSubgroup)
+            "${TEAM_ID}/${subject.getLaneType()}/${subject.getCardinalDirection()}/${subject.getGroupId(direction)}/${subgroupId}/${subject.getComponentType()}/${componentId}"
+        else "${TEAM_ID}/${subject.getLaneType()}/${subject.getCardinalDirection()}/${subject.getGroupId(direction)}/${subject.getComponentType()}/${componentId}"
+    }
 
 }

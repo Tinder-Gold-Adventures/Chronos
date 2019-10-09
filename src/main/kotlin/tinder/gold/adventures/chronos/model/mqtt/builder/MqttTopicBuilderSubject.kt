@@ -2,11 +2,15 @@ package tinder.gold.adventures.chronos.model.mqtt.builder
 
 import tinder.gold.adventures.chronos.ext.to
 
-abstract class MqttTopicBuilderSubject {
+open class MqttTopicBuilderSubject(
+        val LANE_TYPE: MqttTopicBuilder.LaneType,
+        val CARDINAL_DIRECTION: MqttTopicBuilder.CardinalDirection,
+        val COMPONENT_TYPE: MqttTopicBuilder.ComponentType
+) {
 
-    abstract val LANE_TYPE: MqttTopicBuilder.LaneType
-    abstract val CARDINAL_DIRECTION: MqttTopicBuilder.CardinalDirection
-    abstract val COMPONENT_TYPE: MqttTopicBuilder.ComponentType
+    fun getLaneType() = LANE_TYPE.name.toLowerCase()
+    fun getCardinalDirection() = CARDINAL_DIRECTION.name.toLowerCase()
+    fun getComponentType() = COMPONENT_TYPE.name.toLowerCase()
 
     fun getGroupId(otherDir: MqttTopicBuilder.CardinalDirection): Int {
         val groupStr = CARDINAL_DIRECTION to otherDir

@@ -1,6 +1,18 @@
 package tinder.gold.adventures.chronos.model.traffic.control
 
-class MotorisedTrafficLight : TrafficLight() {
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
+
+class MotorisedTrafficLight(
+        id: Int,
+        directionTo: CardinalDirection
+) : TrafficLight(
+        id,
+        directionTo,
+        MqttTopicBuilder.LaneType.MOTORISED,
+        MqttTopicBuilder.ComponentType.TRAFFIC_LIGHT
+) {
+
     fun turnOnGreen() {
         if (trafficLightState == TrafficLightState.Green) return
         // TODO check if allowed to turn on green

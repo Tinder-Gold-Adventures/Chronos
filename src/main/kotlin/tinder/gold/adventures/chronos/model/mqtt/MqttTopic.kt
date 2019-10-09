@@ -21,6 +21,6 @@ data class MqttTopic(
         }
     }
 
-    fun getPublisher(): MqttPublisher = MqttPublisher(this)
-    fun getSubscriber(): MqttSubscriber = MqttSubscriber(this)
+    val publisher = MqttPublisher(this)
+    val subscriber = MqttSubscriber(this)
 }

@@ -57,9 +57,8 @@ class MqttBrokerConnector(
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    throw java.lang.Exception(exception?.cause)
+                    exception?.let { throw it }
                 }
-
             })
         } catch (err: Exception) {
             err.printStackTrace()
@@ -71,10 +70,9 @@ class MqttBrokerConnector(
 
     private fun sendHandshake() {
         val topic = MqttTopic("24")
-        val publisher = topic.getPublisher()
 
         subscribeTest()
-        with(publisher) {
+        with(topic.publisher) {
             client.publish("Controller Chronos Connected", MqttPublishProperties(QoSLevel.QOS1))
         }
 
@@ -83,9 +81,8 @@ class MqttBrokerConnector(
 
     private fun subscribeTest() {
         val topic = MqttTopic("24/#")
-        val subscriber = topic.getSubscriber()
 
-        with(subscriber) {
+        with(topic.subscriber) {
             client.subscribe(QoSLevel.QOS1) { s: String, msg: MqttMessage ->
                 logger.info { "Received msg: ${msg.getPayloadString()} ($s)" }
             }

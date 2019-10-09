@@ -1,8 +1,7 @@
 package tinder.gold.adventures.chronos.model.mqtt
 
 import mu.KotlinLogging
-import org.eclipse.paho.client.mqttv3.IMqttAsyncClient
-import org.eclipse.paho.client.mqttv3.MqttMessage
+import org.eclipse.paho.client.mqttv3.*
 
 /**
  * Defines a subscriber for an MqttConnection
@@ -22,7 +21,20 @@ class MqttSubscriber(
     }
 
     fun IMqttAsyncClient.unsubscribe() {
-        this.unsubscribe(topic.name)
+        try {
+            val token = this.unsubscribe(topic.name)
+            token.actionCallback = object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    logger.info { "Unsubscribed from topic ${topic.name}" }
+                }
+
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    exception?.let { throw it }
+                }
+            }
+        } catch (err: MqttException) {
+            logger.error("Problem during unsubscribing from ${topic.name}", err.cause)
+        }
     }
 
     private fun receiveSubAck(returnCode: Int) {
@@ -32,6 +44,7 @@ class MqttSubscriber(
             1 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS1})" }
             2 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS2})" }
             128 -> logger.info { "Subscription failed (return code 128)" }
+            else -> logger.info { "Unknown returned ack-code (${returnCode}"}
         }
     }
 }

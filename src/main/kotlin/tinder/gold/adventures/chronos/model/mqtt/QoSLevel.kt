@@ -3,25 +3,24 @@ package tinder.gold.adventures.chronos.model.mqtt
 /**
  * Defines a Qualtiy of Service level
  */
-enum class QoSLevel {
+enum class QoSLevel(
+        private val value: Int
+) {
     /**
      * Default and doesn’t guarantee message delivery. (Fire & Forget)
      */
-    QOS0 {
-        override fun asInt() = 0
+    QOS0(0) {
     },
     /**
      * Guarantees message delivery but could get duplicates.
      */
-    QOS1 {
-        override fun asInt() = 1
+    QOS1(1) {
     },
     /**
      * Guarantees message delivery with no duplicates.
      */
-    QOS2 {
-        override fun asInt() = 2
+    QOS2(2) {
     };
 
-    abstract fun asInt(): Int
+    fun asInt() = value
 }

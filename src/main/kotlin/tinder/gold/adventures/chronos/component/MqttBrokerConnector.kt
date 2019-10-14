@@ -1,40 +1,29 @@
-package tinder.gold.adventures.chronos.mqtt.job
+package tinder.gold.adventures.chronos.component
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.ChronosApplication
-import tinder.gold.adventures.chronos.model.mqtt.MqttConnection
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublishProperties
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.QoSLevel
-import tinder.gold.adventures.chronos.mqtt.MqttExt.Connection.ClientId
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 
-class MqttBrokerConnector(
-        private val mqttConnection: MqttConnection
-) : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+@Component
+class MqttBrokerConnector : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     private val logger = ChronosApplication.Logger
-    private var isInitialized = false
-
     private lateinit var token: IMqttToken
-
-    private val persistence = MemoryPersistence()
-    private lateinit var client: MqttAsyncClient
     private lateinit var connectOptions: MqttConnectOptions
 
-    fun init() {
-        if (isInitialized) return
-        client = MqttAsyncClient(mqttConnection.getConnectionString(), "$ClientId#${MqttClient.generateClientId()}", persistence)
-        isInitialized = true
-    }
+    @Autowired
+    private lateinit var client: MqttAsyncClient
 
     fun connect(options: MqttConnectOptions = MqttConnectOptions()) = launch {
-        init()
         connectOptions = options.apply {
             isCleanSession = true
             isAutomaticReconnect = true
@@ -54,6 +43,7 @@ class MqttBrokerConnector(
                         logger.info { "Granted QoS level: $it" }
                     }
                     sendHandshake()
+                    subscribeTest()
                 }
 
                 override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
@@ -71,7 +61,6 @@ class MqttBrokerConnector(
     private fun sendHandshake() {
         val topic = MqttTopic("24")
 
-        subscribeTest()
         with(topic.publisher) {
             client.publish("Controller Chronos Connected", MqttPublishProperties(QoSLevel.QOS1))
         }
@@ -80,7 +69,7 @@ class MqttBrokerConnector(
     }
 
     private fun subscribeTest() {
-        val topic = MqttTopic("24/#")
+        val topic = MqttTopic("24/")
 
         with(topic.subscriber) {
             client.subscribe(QoSLevel.QOS1) { s: String, msg: MqttMessage ->

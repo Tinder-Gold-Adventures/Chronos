@@ -2,6 +2,7 @@ package tinder.gold.adventures.chronos.service
 
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilderSubject
@@ -14,7 +15,7 @@ class ControlRegistryService {
 
     private val logger = KotlinLogging.logger { }
 
-    private object Controls {
+    object Controls {
         private val logger = KotlinLogging.logger { }
 
         val motorised = hashMapOf(
@@ -28,8 +29,14 @@ class ControlRegistryService {
                 throw Exception("Traffic control cannot lead to the same cardinal direction")
             }
             motorised[direction]?.let {
+                val topic = getMqttTopic(control.getMqttTopicBuilderSubject(direction), control)
+                val mqttTopic = MqttTopic(topic)
+                control.apply {
+                    publisher = mqttTopic.publisher
+                    subscriber = mqttTopic.subscriber
+                }
                 it.add(control)
-                logger.info { "Registered control ${getMqttTopic(control.getMqttTopicBuilderSubject(direction), control)} on direction $direction to ${control.directionTo}" }
+                logger.info { "Registered control $topic on direction $direction to ${control.directionTo}" }
             }
         }
 
@@ -41,6 +48,13 @@ class ControlRegistryService {
     fun init() {
         registerControls()
     }
+
+    fun <T : ITrafficControl> getControl(fromDir: CardinalDirection, id: Int): T? {
+        if (id < 0 || Controls.motorised.size >= id) return null
+        return Controls.motorised[fromDir]!!.firstOrNull { it.componentId == id } as T
+    }
+
+    fun getControls(fromDir: CardinalDirection) = Controls.motorised[fromDir]!!
 
     private fun registerControls() {
         logger.info { "Registering controls" }

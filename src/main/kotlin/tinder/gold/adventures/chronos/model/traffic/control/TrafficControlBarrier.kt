@@ -12,16 +12,17 @@ class TrafficControlBarrier {
         private set
 
     fun close() {
-        if (state == BarrierState.CLOSED) return
-        // set closing
-        state = BarrierState.CLOSED
-        // TODO send mqtt message
+        setState(BarrierState.CLOSED)
     }
 
     fun open() {
-        if (state == BarrierState.OPEN) return
+        setState(BarrierState.OPEN)
+    }
+
+    private fun setState(state: BarrierState) {
+        if (this.state == state) return
         // set opening
-        state = BarrierState.OPEN
+        this.state = state
         // TODO send mqtt message
     }
 }

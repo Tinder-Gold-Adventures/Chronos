@@ -1,5 +1,7 @@
 package tinder.gold.adventures.chronos.model.traffic.control
 
+import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
+import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 
 class BridgeWarningLight(
@@ -10,5 +12,6 @@ class BridgeWarningLight(
 ) : IWarningLight {
 
     override var state = IWarningLight.State.OFF
-
+    override lateinit var publisher: MqttPublisher
+    override lateinit var subscriber: MqttSubscriber
 }

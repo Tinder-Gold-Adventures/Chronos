@@ -6,11 +6,11 @@ import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 
 class TrainWarningLight(
-        override val componentId: Int,
         override val directionTo: CardinalDirection,
         override val laneType: MqttTopicBuilder.LaneType,
-        override val componentType: MqttTopicBuilder.ComponentType
-) : IWarningLight {
+        override val componentType: MqttTopicBuilder.ComponentType,
+        override val overrideSubgroup: Int?
+) : WarningLight() {
 
     override var state = IWarningLight.State.OFF
     override lateinit var publisher: MqttPublisher

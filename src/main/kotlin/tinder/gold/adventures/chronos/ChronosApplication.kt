@@ -34,7 +34,6 @@ class ChronosApplication {
         mqttBrokerConnector.connect()
         // TODO make this better
         while(!client.isConnected);
-        trafficControlService.greenTest()
     }
 
 }

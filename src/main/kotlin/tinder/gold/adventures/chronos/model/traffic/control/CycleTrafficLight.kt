@@ -6,13 +6,13 @@ import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 
 class CycleTrafficLight(
-        id: Int,
-        directionTo: CardinalDirection
+        directionTo: CardinalDirection,
+        overrideSubgroupId: Int? = null
 ) : TrafficLight(
-        id,
         directionTo,
         MqttTopicBuilder.LaneType.MOTORISED,
-        MqttTopicBuilder.ComponentType.TRAFFIC_LIGHT
+        MqttTopicBuilder.ComponentType.TRAFFIC_LIGHT,
+        overrideSubgroupId
 ) {
     override lateinit var publisher: MqttPublisher
     override lateinit var subscriber: MqttSubscriber

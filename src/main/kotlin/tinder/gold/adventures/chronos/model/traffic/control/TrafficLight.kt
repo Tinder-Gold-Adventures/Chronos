@@ -5,10 +5,11 @@ import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 
 abstract class TrafficLight(
-        override val componentId: Int,
         override val directionTo: CardinalDirection,
         override val laneType: MqttTopicBuilder.LaneType,
-        override val componentType: MqttTopicBuilder.ComponentType
+        override val componentType: MqttTopicBuilder.ComponentType,
+        override val overrideSubgroup: Int? = null,
+        override val componentId: Int = 0
 ) : ITrafficControl {
 
     var trafficLightState: TrafficLightState = TrafficLightState.Red

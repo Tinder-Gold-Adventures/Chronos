@@ -1,6 +1,8 @@
 package tinder.gold.adventures.chronos.model.traffic.sensor
 
-interface ISensor {
+import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
+
+interface ISensor : ITrafficControl {
     enum class ActuationState {
         ACTUATED,
         NON_ACTUATED

@@ -1,6 +1,7 @@
 package tinder.gold.adventures.chronos.model.mqtt.builder
 
 import tinder.gold.adventures.chronos.ext.to
+import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
 
 open class MqttTopicBuilderSubject(
         val LANE_TYPE: MqttTopicBuilder.LaneType,
@@ -43,10 +44,10 @@ open class MqttTopicBuilderSubject(
                 throw Exception("Impossible combination for subgroup ID")
             }
 
+            // North
             if (CARDINAL_DIRECTION == MqttTopicBuilder.CardinalDirection.NORTH) {
                 return when (otherDir) {
-                    MqttTopicBuilder.CardinalDirection.EAST -> 0
-                    MqttTopicBuilder.CardinalDirection.WEST -> 1
+                    MqttTopicBuilder.CardinalDirection.SOUTH -> 0
                     else -> -1
                 }
             }
@@ -60,4 +61,6 @@ open class MqttTopicBuilderSubject(
         }
         return -1
     }
+
+    fun getMqttTopic(control: ITrafficControl) = MqttTopicBuilder.getTopicString(this, control)
 }

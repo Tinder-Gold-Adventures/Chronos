@@ -40,11 +40,11 @@ class MqttSubscriber(
     private fun receiveSubAck(returnCode: Int) {
         // receive an ack code
         when (returnCode) {
-            0 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS0})" }
-            1 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS1})" }
-            2 -> logger.info { "Subscription acknowledged (${QoSLevel.QOS2})" }
-            128 -> logger.info { "Subscription failed (return code 128)" }
-            else -> logger.info { "Unknown returned ack-code (${returnCode}"}
+            0 -> logger.trace { "Subscription acknowledged (${QoSLevel.QOS0})" }
+            1 -> logger.trace { "Subscription acknowledged (${QoSLevel.QOS1})" }
+            2 -> logger.trace { "Subscription acknowledged (${QoSLevel.QOS2})" }
+            128 -> logger.trace { "Subscription failed (return code 128)" }
+            else -> logger.trace { "Unknown returned ack-code (${returnCode}"}
         }
     }
 }

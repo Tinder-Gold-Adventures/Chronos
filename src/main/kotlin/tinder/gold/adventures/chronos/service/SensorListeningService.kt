@@ -23,10 +23,13 @@ class SensorListeningService {
 
     private val sensorMap = hashMapOf<String, Int>()
 
+    fun getSensorValue(topic: String): Int = if (sensorMap.containsKey(topic)) sensorMap[topic]!! else 0
+
     @PostConstruct
     fun init() {
         logger.info { "Initializing" }
         registerControls()
+        while(!client.isConnected)
         listen()
     }
 
@@ -45,7 +48,7 @@ class SensorListeningService {
 
     private fun listen() {
         controlRegistryService.getMotorisedSensors()
-                .flatMap { it.value as ArrayList<TrafficSensor>}
+                .flatMap { it.value as ArrayList<TrafficSensor> }
                 .forEach(this::listenToTrafficControl)
     }
 

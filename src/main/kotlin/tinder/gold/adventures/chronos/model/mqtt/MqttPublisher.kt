@@ -21,7 +21,7 @@ class MqttPublisher(
                     message,
                     props.QualityOfServiceLevel.ordinal,
                     props.RetainFlag)
-            logger.info { "Published \"$message\" to topic \"${topic.name}\"" }
+            logger.info { "Published \"$payload\" to topic \"${topic.name}\"" }
         } catch (err: MqttPersistenceException) {
             logger.error("Problem occurred when storing a message on topic ${topic.name}", err.cause)
         } // IllegalArgumentException should not happen since we manage QoS with an enum

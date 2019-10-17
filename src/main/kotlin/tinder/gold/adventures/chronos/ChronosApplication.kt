@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.ConfigurableApplicationContext
 import tinder.gold.adventures.chronos.component.MqttBrokerConnector
-import tinder.gold.adventures.chronos.service.TrafficControlService
 import javax.annotation.PostConstruct
 
 @SpringBootApplication
@@ -25,8 +24,6 @@ class ChronosApplication {
 
     @Autowired
     private lateinit var mqttBrokerConnector: MqttBrokerConnector
-    @Autowired
-    private lateinit var trafficControlService: TrafficControlService
     @Autowired
     private lateinit var client: MqttAsyncClient
     @PostConstruct

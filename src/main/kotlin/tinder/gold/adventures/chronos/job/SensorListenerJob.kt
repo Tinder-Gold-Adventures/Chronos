@@ -2,6 +2,7 @@ package tinder.gold.adventures.chronos.job
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
@@ -16,7 +17,7 @@ import tinder.gold.adventures.chronos.service.SensorTrackingService
  * This job is responsible for listening on the Mqtt topics for sensors
  * and forwarding it to the sensor tracker
  */
-class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
 
     private val logger = KotlinLogging.logger { }
 
@@ -29,7 +30,7 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.Default) 
     @Autowired
     private lateinit var controlRegistryService: ControlRegistryService
 
-    fun run() {
+    fun run() = launch {
         logger.info { "Sensor listener job is starting..." }
         launchListeners()
         logger.info { "Listening.." }

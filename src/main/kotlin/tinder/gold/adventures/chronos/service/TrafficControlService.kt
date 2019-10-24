@@ -1,5 +1,9 @@
 package tinder.gold.adventures.chronos.service
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,8 +29,9 @@ class TrafficControlService {
     }
 
     private fun initTimers() {
+
         timer("checkMotorisedLightsTimer", false,
-                period = 5000.toLong()) {
+                period = 8000L) {
 
             var score = 0
             var highestScoring: GroupingService.Grouping? = null
@@ -41,19 +46,17 @@ class TrafficControlService {
             }
 
             if (highestScoring != groupingService.activeGrouping) {
-                swapGroup(highestScoring!!)
+                runBlocking {
+                    updateGroups(highestScoring!!)
+                }
             }
         }
     }
 
-    private fun swapGroup(newGrouping: GroupingService.Grouping) {
-        logger.info { "Swapping to $newGrouping" }
+    fun CoroutineScope.updateGroups(newGrouping: GroupingService.Grouping) = launch {
         if (groupingService.activeGrouping != null) {
-            GroupingService.Controls.getGroup(groupingService.activeGrouping!!)
-                    .filterIsInstance<TrafficLight>()
-                    .forEach {
-                        it.turnRed(client)
-                    }
+            disableTrafficLights(GroupingService.Controls.getGroup(groupingService.activeGrouping!!)
+                    .filterIsInstance<TrafficLight>())
         }
         GroupingService.Controls.getGroup(newGrouping)
                 .filterIsInstance<TrafficLight>()
@@ -63,4 +66,10 @@ class TrafficControlService {
         groupingService.activeGrouping = newGrouping
     }
 
+    suspend fun disableTrafficLights(controls: List<TrafficLight>) {
+        controls.forEach { it.turnYellow(client) }
+        delay(3000L)
+        controls.forEach { it.turnRed(client) }
+        delay(1000L)
+    }
 }

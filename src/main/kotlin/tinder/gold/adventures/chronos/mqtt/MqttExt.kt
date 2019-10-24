@@ -4,6 +4,6 @@ object MqttExt {
     object Connection {
         val ClientId = "Chronos24"
         val Port = 1883
-        val Host = "91.121.165.36"
+        val Host = "62.210.180.72"
     }
 }

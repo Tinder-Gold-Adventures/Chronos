@@ -53,11 +53,11 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.Default) 
     private fun cycleTrafficLightListener(topic: String, msg: MqttMessage) {
         when (val str = msg.getPayloadString()) {
             "0" -> {
-                sensorTrackingService.putValue(topic, 0)
+                sensorTrackingService.putSensorValue(topic, 0)
                 logger.info { "$topic received 0 sensor value" }
             }
             "1" -> {
-                sensorTrackingService.putValue(topic, 1)
+                sensorTrackingService.putSensorValue(topic, 1)
                 logger.info { "$topic received 1 sensor value" }
             }
             else -> {

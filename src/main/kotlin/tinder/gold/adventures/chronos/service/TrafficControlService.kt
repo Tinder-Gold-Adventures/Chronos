@@ -21,7 +21,7 @@ class TrafficControlService {
     private lateinit var controlRegistryService: ControlRegistryService
 
     @Autowired
-    private lateinit var sensorListeningService: SensorListeningService
+    private lateinit var sensorTrackingService: SensorTrackingService
 
     @Autowired
     private lateinit var client: MqttAsyncClient

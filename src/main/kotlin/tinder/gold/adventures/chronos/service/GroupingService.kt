@@ -38,6 +38,26 @@ class GroupingService {
         fun getGroup(grouping: Grouping) = Groups[grouping]!!
     }
 
+    object Priority {
+        val Groups = hashMapOf(
+                Pair(Grouping.GROUP_ONE, 0),
+                Pair(Grouping.GROUP_TWO, 0),
+                Pair(Grouping.GROUP_THREE, 0)
+        )
+
+        fun getPriority(grouping: Grouping) = Groups[grouping]!!
+
+        fun updatePriorities(grouping: Grouping) {
+            Groups.forEach { (group, _) ->
+                if (group != grouping) {
+                    Groups[group] = getPriority(group) + 1
+                } else {
+                    Groups[group] = getPriority(grouping) - 1
+                }
+            }
+        }
+    }
+
     @Autowired
     private lateinit var controlRegistryService: ControlRegistryService
 
@@ -52,7 +72,7 @@ class GroupingService {
     fun getGroupScore(grouping: Grouping) =
             Sensors.getGroup(grouping).sumBy {
                 sensorTrackingService.getActiveCount(it.subscriber.topic.name)
-            }
+            } + Priority.getPriority(grouping)
 
     private fun initGroups() {
         initControls()

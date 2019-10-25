@@ -67,6 +67,8 @@ class TrafficControlService {
                     }
                 }
         groupingService.activeGrouping = newGrouping
+        logger.info { "Updating priorities" }
+        GroupingService.Priority.updatePriorities(newGrouping)
     }
 
     suspend fun disableTrafficLights(controls: List<TrafficLight>) {

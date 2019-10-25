@@ -72,7 +72,7 @@ class GroupingService {
     fun getGroupScore(grouping: Grouping) =
             Sensors.getGroup(grouping).sumBy {
                 sensorTrackingService.getActiveCount(it.subscriber.topic.name)
-            } + Priority.getPriority(grouping)
+            }
 
     private fun initGroups() {
         initControls()
@@ -88,6 +88,8 @@ class GroupingService {
 
         controlRegistryService.getMotorisedControls(CardinalDirection.NORTH)
                 .filter { it.directionTo == CardinalDirection.EAST }
+                .union(controlRegistryService.getMotorisedControls(CardinalDirection.EAST)
+                        .filter { it.directionTo == CardinalDirection.NORTH })
                 .union(controlRegistryService.getMotorisedControls(CardinalDirection.SOUTH)
                         .filter { it.directionTo == CardinalDirection.WEST })
                 .union(controlRegistryService.getMotorisedControls(CardinalDirection.WEST)
@@ -97,9 +99,9 @@ class GroupingService {
         controlRegistryService.getMotorisedControls(CardinalDirection.NORTH)
                 .filter { it.directionTo == CardinalDirection.WEST }
                 .union(controlRegistryService.getMotorisedControls(CardinalDirection.EAST)
-                        .filter { it.directionTo == CardinalDirection.NORTH || it.directionTo == CardinalDirection.SOUTH })
-                .union(controlRegistryService.getMotorisedControls(CardinalDirection.SOUTH)
-                        .filter { it.directionTo == CardinalDirection.EAST })
+                        .filter { it.directionTo == CardinalDirection.SOUTH })
+                .union(controlRegistryService.getMotorisedControls(CardinalDirection.WEST)
+                        .filter { it.directionTo == CardinalDirection.NORTH })
                 .toCollection(Controls.getGroup(Grouping.GROUP_THREE))
     }
 
@@ -112,6 +114,8 @@ class GroupingService {
 
         controlRegistryService.getMotorisedSensors(CardinalDirection.NORTH)
                 .filter { it.directionTo == CardinalDirection.EAST }
+                .union(controlRegistryService.getMotorisedSensors(CardinalDirection.EAST)
+                        .filter { it.directionTo == CardinalDirection.NORTH })
                 .union(controlRegistryService.getMotorisedSensors(CardinalDirection.SOUTH)
                         .filter { it.directionTo == CardinalDirection.WEST })
                 .union(controlRegistryService.getMotorisedSensors(CardinalDirection.WEST)
@@ -121,9 +125,9 @@ class GroupingService {
         controlRegistryService.getMotorisedSensors(CardinalDirection.NORTH)
                 .filter { it.directionTo == CardinalDirection.WEST }
                 .union(controlRegistryService.getMotorisedSensors(CardinalDirection.EAST)
-                        .filter { it.directionTo == CardinalDirection.NORTH || it.directionTo == CardinalDirection.SOUTH })
-                .union(controlRegistryService.getMotorisedSensors(CardinalDirection.SOUTH)
-                        .filter { it.directionTo == CardinalDirection.EAST })
+                        .filter { it.directionTo == CardinalDirection.SOUTH })
+                .union(controlRegistryService.getMotorisedSensors(CardinalDirection.WEST)
+                        .filter { it.directionTo == CardinalDirection.NORTH })
                 .toCollection(Sensors.getGroup(Grouping.GROUP_THREE))
     }
 }

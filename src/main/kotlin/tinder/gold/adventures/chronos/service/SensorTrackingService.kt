@@ -31,6 +31,12 @@ class SensorTrackingService {
         updateCache(topic, value)
     }
 
+    fun resetCache(topic: String) {
+        sensorMapCache[topic] = SensorCache(0, 0)
+    }
+
+    fun isConnected() = sensorMapCache.any()
+
     fun getActiveCount(topic: String) = if (!sensorMapCache.containsKey(topic)) 0
     else sensorMapCache[topic]!!.activeCount
 

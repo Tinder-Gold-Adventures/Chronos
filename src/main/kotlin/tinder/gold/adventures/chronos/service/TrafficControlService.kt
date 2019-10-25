@@ -1,9 +1,6 @@
 package tinder.gold.adventures.chronos.service
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +30,7 @@ class TrafficControlService {
         timer("checkMotorisedLightsTimer", false,
                 period = 8000L) {
 
+            logger.info { "Lights timer..." }
             var score = 0
             var highestScoring: GroupingService.Grouping? = null
 
@@ -54,22 +52,29 @@ class TrafficControlService {
     }
 
     fun CoroutineScope.updateGroups(newGrouping: GroupingService.Grouping) = launch {
+        logger.info { "Updating active group to: $newGrouping" }
         if (groupingService.activeGrouping != null) {
+            logger.info { "Disabling previous group..." }
             disableTrafficLights(GroupingService.Controls.getGroup(groupingService.activeGrouping!!)
                     .filterIsInstance<TrafficLight>())
         }
+        logger.info { "Enabling new group..." }
         GroupingService.Controls.getGroup(newGrouping)
                 .filterIsInstance<TrafficLight>()
                 .forEach {
-                    it.turnGreen(client)
+                    withContext(Dispatchers.IO) {
+                        it.turnGreen(client)
+                    }
                 }
         groupingService.activeGrouping = newGrouping
     }
 
     suspend fun disableTrafficLights(controls: List<TrafficLight>) {
-        controls.forEach { it.turnYellow(client) }
-        delay(3000L)
-        controls.forEach { it.turnRed(client) }
-        delay(1000L)
+        withContext(Dispatchers.IO) {
+            controls.forEach { it.turnYellow(client) }
+            delay(3000L)
+            controls.forEach { it.turnRed(client) }
+            delay(1000L)
+        }
     }
 }

@@ -12,7 +12,7 @@ class MqttLoggingCallback : MqttCallback {
     }
 
     override fun connectionLost(cause: Throwable?) {
-        logger.info("Connection lost", cause)
+        logger.warn("Connection lost", cause)
     }
 
     override fun deliveryComplete(token: IMqttDeliveryToken?) {

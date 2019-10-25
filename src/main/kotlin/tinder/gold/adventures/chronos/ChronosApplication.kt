@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.ConfigurableApplicationContext
 import tinder.gold.adventures.chronos.component.MqttBrokerConnector
+import tinder.gold.adventures.chronos.job.ChronosControlJob
 import javax.annotation.PostConstruct
 
 @SpringBootApplication
@@ -26,11 +27,11 @@ class ChronosApplication {
     private lateinit var mqttBrokerConnector: MqttBrokerConnector
     @Autowired
     private lateinit var client: MqttAsyncClient
+
     @PostConstruct
     fun init() {
         mqttBrokerConnector.connect()
-        // TODO make this better
-        while(!client.isConnected);
+        while (!client.isConnected);
     }
 
 }
@@ -40,5 +41,6 @@ fun main(args: Array<String>) {
         this.webApplicationType = WebApplicationType.NONE
         this.setBannerMode(Banner.Mode.OFF)
     }
-
+    // After connection, start the main parent job
+    ChronosControlJob().run()
 }

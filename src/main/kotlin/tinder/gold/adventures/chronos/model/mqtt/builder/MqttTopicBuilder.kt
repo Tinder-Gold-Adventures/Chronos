@@ -4,9 +4,9 @@ import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
 
 object MqttTopicBuilder {
 
-    //<team_id>/<lane_type>/<cardinal_direction>/<group_id>/<subgroup_id>/<component_type>/<component_id>
+    //<team_id>/<lane_type>/<group_id>/<subgroup_id>/<component_type>/<component_id>
 
-    private val TEAM_ID = 24
+    private const val TEAM_ID = 24
 
     enum class LaneType {
         FOOT,

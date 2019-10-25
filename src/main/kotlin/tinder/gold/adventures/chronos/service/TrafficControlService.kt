@@ -1,16 +1,13 @@
 package tinder.gold.adventures.chronos.service
 
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
 import tinder.gold.adventures.chronos.model.traffic.control.TrafficLight
-import tinder.gold.adventures.chronos.model.traffic.sensor.ISensor
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import javax.annotation.PostConstruct
-import kotlin.concurrent.timer
 
 @Service
 class TrafficControlService {
@@ -18,121 +15,101 @@ class TrafficControlService {
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
-
-    @Autowired
-    private lateinit var sensorListeningService: SensorListeningService
-
-    @Autowired
     private lateinit var client: MqttAsyncClient
 
-    private var activeGroupString: String = ""
-    private var activeGroup: ArrayList<ITrafficControl> = arrayListOf()
+    @Autowired
+    private lateinit var groupingService: GroupingService
 
-    private val scoreOffsets: HashMap<String, Int> = hashMapOf(
-            Pair("NORTH_GROUP_ONE", 0),
-            Pair("NORTH_GROUP_TWO", 0)
-    )
-
-    // TODO
-    object Groups {
-        object North {
-            object Sensor {
-                val GROUP_ONE: ArrayList<ISensor> = arrayListOf()
-                val GROUP_TWO: ArrayList<ISensor> = arrayListOf()
-            }
-
-            val GROUP_ONE: ArrayList<ITrafficControl> = arrayListOf()
-            val GROUP_TWO: ArrayList<ITrafficControl> = arrayListOf()
-        }
-    }
+    @Autowired
+    private lateinit var sensorTrackingService: SensorTrackingService
 
     @PostConstruct
     fun init() {
-        initGroups()
-        initTimers()
-    }
-
-    private fun initGroups() {
-        controlRegistryService.getMotorisedControls(MqttTopicBuilder.CardinalDirection.NORTH)
-                .filter { it.directionTo != MqttTopicBuilder.CardinalDirection.EAST }
-                .union(controlRegistryService.getMotorisedControls(MqttTopicBuilder.CardinalDirection.SOUTH)
-                        .filter { it.directionTo != MqttTopicBuilder.CardinalDirection.WEST })
-                .toCollection(Groups.North.GROUP_ONE)
-
-        controlRegistryService.getMotorisedControls(MqttTopicBuilder.CardinalDirection.NORTH)
-                .filter { it.directionTo == MqttTopicBuilder.CardinalDirection.EAST }
-                .union(controlRegistryService.getMotorisedControls(MqttTopicBuilder.CardinalDirection.SOUTH)
-                        .filter { it.directionTo == MqttTopicBuilder.CardinalDirection.WEST })
-                .toCollection(Groups.North.GROUP_TWO)
-
-        controlRegistryService.getMotorisedSensors(MqttTopicBuilder.CardinalDirection.NORTH)
-                .filter { it.directionTo != MqttTopicBuilder.CardinalDirection.EAST }
-                .union(controlRegistryService.getMotorisedSensors(MqttTopicBuilder.CardinalDirection.SOUTH)
-                        .filter { it.directionTo != MqttTopicBuilder.CardinalDirection.WEST })
-                .toCollection(Groups.North.Sensor.GROUP_ONE)
-
-        controlRegistryService.getMotorisedSensors(MqttTopicBuilder.CardinalDirection.NORTH)
-                .filter { it.directionTo == MqttTopicBuilder.CardinalDirection.EAST }
-                .union(controlRegistryService.getMotorisedSensors(MqttTopicBuilder.CardinalDirection.SOUTH)
-                        .filter { it.directionTo == MqttTopicBuilder.CardinalDirection.WEST })
-                .toCollection(Groups.North.Sensor.GROUP_TWO)
-    }
-
-    private fun initTimers() {
-        timer("checkMotorisedLightsTimer", false,
-                period = 5000.toLong()) {
-
-            val score1 = getScore("NORTH_GROUP_ONE", Groups.North.Sensor.GROUP_ONE)
-            val score2 = getScore("NORTH_GROUP_TWO", Groups.North.Sensor.GROUP_TWO)
-
-            if (score2 > score1) {
-                // swap to group 2
-                swapGroup("NORTH_GROUP_TWO", Groups.North.GROUP_TWO)
-            } else if (score1 > score2) {
-                // activate group 1
-                swapGroup("NORTH_GROUP_ONE", Groups.North.GROUP_ONE)
+        GlobalScope.launch {
+            withContext(this.coroutineContext) {
+                while (true) {
+                    updateLights()
+                    delay(8000L)
+                }
             }
         }
     }
 
-    private fun swapGroup(newGroup: String, list: ArrayList<ITrafficControl>) {
-        logger.info { "Swapping to $newGroup" }
-        activeGroup.filterIsInstance<TrafficLight>().forEach {
-            it.turnRed(client)
+    suspend fun updateLights() {
+        logger.info { "Lights timer..." }
+        if (!sensorTrackingService.isConnected()) {
+            logger.info { "Not connected yet, retrying in 8 sec..." }
+            return
         }
-        if (activeGroupString != "") {
-            scoreOffsets.compute(activeGroupString) { _: String, i: Int? ->
-                i!!.minus(5)
-            }
-        }
-        activeGroupString = newGroup
-        activeGroup = ArrayList(list)
-        activeGroup.filterIsInstance<TrafficLight>().forEach {
-            it.turnGreen(client)
-        }
-        scoreOffsets.compute(newGroup) { _: String, i: Int? ->
-            i!!.plus(5)
-        }
-        verifyOffsets()
-    }
+        var score = 0
+        var highestScoring: GroupingService.Grouping? = null
 
-    private fun verifyOffsets() {
-        scoreOffsets.filter { it.value < 0 }
+        val groupings = GroupingService.Grouping::class.sealedSubclasses
+        var highestPriority = 0
+        groupings.forEach {
+            val grouping = it.objectInstance!!
+            val priority = GroupingService.Priority.getPriority(grouping)
+            if (priority > highestPriority)
+                highestPriority = priority
+        }
+        groupings.filter { GroupingService.Priority.getPriority(it.objectInstance!!) == highestPriority }
                 .forEach {
-                    scoreOffsets[it.key] = 0
+                    val grouping = it.objectInstance!!
+                    val groupingScore = groupingService.getGroupScore(grouping)
+
+                    if (groupingScore > score || highestScoring == null) {
+                        score = groupingScore
+                        highestScoring = grouping
+                    }
+                }
+
+        if (highestScoring != groupingService.activeGrouping) {
+            updateGroups(highestScoring!!)
+        }
+    }
+
+    suspend fun updateGroups(newGrouping: GroupingService.Grouping) {
+        logger.info { "Updating active group to: $newGrouping" }
+        if (groupingService.activeGrouping != null) {
+            logger.info { "Disabling previous group..." }
+
+            val lights = GroupingService.Controls.getGroup(groupingService.activeGrouping!!)
+                    .filterIsInstance<TrafficLight>()
+
+            lights.forEach {
+                it.turnYellow(client)
+            }
+            delay(3000L)
+            lights.forEach {
+                it.turnRed(client)
+            }
+            delay(3000L)
+        }
+        logger.info { "Enabling new group... $newGrouping" }
+        GroupingService.Controls.getGroup(newGrouping)
+                .filterIsInstance<TrafficLight>()
+                .forEach {
+                    withContext(Dispatchers.IO) {
+                        it.turnGreen(client)
+                    }
+                }
+        groupingService.activeGrouping = newGrouping
+        logger.info { "Updating priorities" }
+        resetScore(newGrouping)
+        GroupingService.Priority.updatePriorities(newGrouping)
+    }
+
+    fun resetScore(grouping: GroupingService.Grouping) {
+        GroupingService.Sensors.getGroup(grouping)
+                .filterIsInstance<TrafficSensor>()
+                .forEach {
+                    sensorTrackingService.resetCache(it.subscriber.topic.name)
                 }
     }
 
-    private fun getScore(group: String, list: ArrayList<ISensor>): Int {
-        var score = 0
-        list.forEach {
-            if (it is TrafficSensor) {
-                if (it.state == ISensor.ActuationState.ACTUATED)
-                    score++
-            }
-        }
-        return score - scoreOffsets.getOrDefault(group, 0)
-    }
-
+//    suspend fun disableTrafficLights(controls: List<TrafficLight>) {
+//        withContext(Dispatchers.IO) {
+//
+//        }
+//    }
 }

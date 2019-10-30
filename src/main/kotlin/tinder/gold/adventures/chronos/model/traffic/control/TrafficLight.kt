@@ -39,5 +39,4 @@ abstract class TrafficLight(
             publisher.sendState(client)
         }
     }
-
 }

@@ -5,8 +5,7 @@ import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.LaneType
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
-import tinder.gold.adventures.chronos.model.traffic.control.MotorisedTrafficLight
+import tinder.gold.adventures.chronos.model.traffic.control.*
 import tinder.gold.adventures.chronos.model.traffic.sensor.ISensor
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import javax.annotation.PostConstruct
@@ -28,6 +27,38 @@ class ControlRegistryService {
             CardinalDirection.SOUTH to ArrayList<ISensor>(),
             CardinalDirection.WEST to ArrayList<ISensor>())
 
+    private val vesselTracks = hashMapOf(
+            CardinalDirection.WEST to VesselTrack(CardinalDirection.EAST),
+            CardinalDirection.EAST to VesselTrack(CardinalDirection.WEST))
+
+    private val vesselBarriers = listOf(
+            VesselControlBarrier(0), // West fiets/voetpad
+            VesselControlBarrier(1), // Autorijbaan Noord > Zuid
+            VesselControlBarrier(2), // Autorijbaan Zuid > Noord
+            VesselControlBarrier(3), // Oost fiets/voetpad
+            VesselControlBarrier(4), // West fiets/voetpad
+            VesselControlBarrier(5), // Autorijbaan Noord > Zuid
+            VesselControlBarrier(6), // Autorijbaan Zuid > Noord
+            VesselControlBarrier(7)) // Oost fiets/voetpad
+
+    private val trainTracks = hashMapOf(
+            CardinalDirection.WEST to TrainTrack(CardinalDirection.EAST),
+            CardinalDirection.EAST to TrainTrack(CardinalDirection.WEST))
+
+    private val trainBarriers = listOf(
+            TrainControlBarrier(0), // West fiets/voetpad
+            TrainControlBarrier(1), // Autorijbaan Noord > Zuid
+            TrainControlBarrier(2), // Oost fietspad
+            TrainControlBarrier(3), // Oost voetpad
+            TrainControlBarrier(4), // West voetpad
+            TrainControlBarrier(5), // West fietspad
+            TrainControlBarrier(6), // Autorijbaan Zuid > West
+            TrainControlBarrier(7), // Autorijbaan Zuid > Noord/Oost
+            TrainControlBarrier(8)) // Oost fiets/voetpad
+
+    private val trainWarningLights = TrainWarningLight()
+    private val vesselWarningLights = VesselWarningLight()
+
     fun registerTrafficControl(laneType: LaneType, direction: CardinalDirection, control: ITrafficControl) {
         when (laneType) {
             LaneType.MOTORISED -> {
@@ -36,8 +67,12 @@ class ControlRegistryService {
             }
             LaneType.FOOT -> TODO()
             LaneType.CYCLE -> TODO()
-            LaneType.VESSEL -> TODO()
-            LaneType.TRACK -> TODO()
+            LaneType.VESSEL -> {
+                logger.warn { "No vessel controls have to be registered" }
+            }
+            LaneType.TRACK -> {
+                logger.warn { "No track controls have to be registered" }
+            }
         }
     }
 
@@ -46,15 +81,20 @@ class ControlRegistryService {
             throw Exception("Traffic control cannot lead to the same cardinal direction")
         }
         map[direction]?.let {
-            val topic = control.getMqttTopicBuilderSubject(direction).getMqttTopic(control)
-            val mqttTopic = MqttTopic(topic)
-            control.apply {
-                publisher = mqttTopic.publisher
-                subscriber = mqttTopic.subscriber
-            }
+            val topic = setMqttProperties(direction, control)
             it.add(control as T)
             logger.info { "Registered control $topic on direction $direction to ${control.directionTo}" }
         }
+    }
+
+    private fun setMqttProperties(direction: CardinalDirection, control: ITrafficControl): String {
+        val topic = control.getMqttTopicBuilderSubject(direction).getMqttTopic(control)
+        val mqttTopic = MqttTopic(topic)
+        control.apply {
+            publisher = mqttTopic.publisher
+            subscriber = mqttTopic.subscriber
+        }
+        return topic
     }
 
     fun getMotorisedSensors() = motorisedSensors
@@ -70,13 +110,31 @@ class ControlRegistryService {
     private fun registerControls() {
         logger.info { "Registering controls" }
 
-        registerNorthControls()
-        registerEastControls()
-        registerSouthControls()
-        registerWestControls()
+        registerNorthMotorisedControls()
+        registerEastMotorisedControls()
+        registerSouthMotorisedControls()
+        registerWestMotorisedControls()
+
+        initControls()
     }
 
-    private fun registerNorthControls() {
+    private fun initControls() {
+        vesselTracks.forEach { (dir, track) ->
+            logger.info { "Initialised ${setMqttProperties(dir, track)}" }
+        }
+        trainTracks.forEach { (dir, track) ->
+            logger.info { "Initialised ${setMqttProperties(dir, track)}" }
+        }
+        vesselBarriers.map { it as ITrafficControl }
+                .union(trainBarriers)
+                .forEach {
+                    logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, it)}" }
+                }
+        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, trainWarningLights)}" }
+        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, vesselWarningLights)}" }
+    }
+
+    private fun registerNorthMotorisedControls() {
         // Motorised traffic lights
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.WEST))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH))
@@ -93,7 +151,7 @@ class ControlRegistryService {
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR))
     }
 
-    private fun registerEastControls() {
+    private fun registerEastMotorisedControls() {
         // Motorised traffic lights
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, MotorisedTrafficLight(CardinalDirection.NORTH))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, MotorisedTrafficLight(CardinalDirection.SOUTH))
@@ -104,7 +162,7 @@ class ControlRegistryService {
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR))
     }
 
-    private fun registerSouthControls() {
+    private fun registerSouthMotorisedControls() {
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.WEST))
         // ?? Both to north and east (from the same lane)
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.NORTH))
@@ -119,7 +177,7 @@ class ControlRegistryService {
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR))
     }
 
-    private fun registerWestControls() {
+    private fun registerWestMotorisedControls() {
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, MotorisedTrafficLight(CardinalDirection.NORTH))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, MotorisedTrafficLight(CardinalDirection.SOUTH))
 

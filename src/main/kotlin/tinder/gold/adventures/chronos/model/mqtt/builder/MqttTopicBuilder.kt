@@ -20,7 +20,8 @@ object MqttTopicBuilder {
         NORTH,
         EAST,
         SOUTH,
-        WEST
+        WEST,
+        INVALID
     }
 
     enum class ComponentType {
@@ -39,8 +40,8 @@ object MqttTopicBuilder {
 
         val hasSubgroup = subgroupId != -1
         return if (hasSubgroup)
-            "${TEAM_ID}/${subject.getLaneType()}/${subject.getGroupId(control.directionTo)}/${subgroupId}/${subject.getComponentType()}/${control.componentId}"
-        else "${TEAM_ID}/${subject.getLaneType()}/${subject.getGroupId(control.directionTo)}/${subject.getComponentType()}/${control.componentId}"
+            "${TEAM_ID}/${subject.getLaneType()}/${subject.getGroupId(control)}/${subgroupId}/${subject.getComponentType()}/${control.componentId}"
+        else "${TEAM_ID}/${subject.getLaneType()}/${subject.getGroupId(control)}/${subject.getComponentType()}/${control.componentId}"
     }
 
 }

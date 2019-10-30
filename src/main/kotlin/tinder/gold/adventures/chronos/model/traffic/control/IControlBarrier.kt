@@ -3,16 +3,15 @@ package tinder.gold.adventures.chronos.model.traffic.control
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
 
-interface IWarningLight : ITrafficControl {
+interface IControlBarrier : ITrafficControl {
+    sealed class BarrierState {
 
-    sealed class WarningLightState {
-
-        object On : WarningLightState() {
-            override fun getPayload() = "1"
+        object Open : BarrierState() {
+            override fun getPayload() = "0"
         }
 
-        object Off : WarningLightState() {
-            override fun getPayload() = "0"
+        object Closed : BarrierState() {
+            override fun getPayload() = "1"
         }
 
         abstract fun getPayload(): String
@@ -23,19 +22,19 @@ interface IWarningLight : ITrafficControl {
         }
     }
 
-    var state: WarningLightState
+    var state: BarrierState
 
-    fun turnOn(client: MqttAsyncClient) {
-        if (state == WarningLightState.On) return
-        state = WarningLightState.On
+    fun open(client: MqttAsyncClient) {
+        if (state == BarrierState.Open) return
+        state = BarrierState.Open
         with(state) {
             publisher.sendState(client)
         }
     }
 
-    fun turnOff(client: MqttAsyncClient) {
-        if (state == WarningLightState.Off) return
-        state = WarningLightState.Off
+    fun close(client: MqttAsyncClient) {
+        if (state == BarrierState.Closed) return
+        state = BarrierState.Closed
         with(state) {
             publisher.sendState(client)
         }

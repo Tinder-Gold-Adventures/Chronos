@@ -5,14 +5,12 @@ import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 
-class TrainWarningLight(
-        override val directionTo: CardinalDirection,
-        override val laneType: MqttTopicBuilder.LaneType,
-        override val componentType: MqttTopicBuilder.ComponentType,
-        override val overrideSubgroup: Int?
-) : WarningLight() {
-
-    override var state = IWarningLight.State.OFF
+class TrainWarningLight : WarningLight() {
+    override val overrideSubgroup: Int? = null
+    override val directionTo = CardinalDirection.INVALID
+    override val laneType = MqttTopicBuilder.LaneType.TRACK
+    override val componentType = MqttTopicBuilder.ComponentType.WARNING_LIGHT
+    override var state: IWarningLight.WarningLightState = IWarningLight.WarningLightState.Off
     override lateinit var publisher: MqttPublisher
     override lateinit var subscriber: MqttSubscriber
 }

@@ -106,10 +106,4 @@ class TrafficControlService {
                     sensorTrackingService.resetCache(it.subscriber.topic.name)
                 }
     }
-
-//    suspend fun disableTrafficLights(controls: List<TrafficLight>) {
-//        withContext(Dispatchers.IO) {
-//
-//        }
-//    }
 }

@@ -38,13 +38,11 @@ open class MqttTopicBuilderSubject(
             }
             // vessel and track share the same groups
             MqttTopicBuilder.LaneType.VESSEL,
-            MqttTopicBuilder.LaneType.TRACK -> return 0
-//            MqttTopicBuilder.LaneType.VESSEL,
-//            MqttTopicBuilder.LaneType.TRACK -> return when (groupStr) {
-//                CardinalDirection.WEST to CardinalDirection.EAST -> 0
-//                CardinalDirection.EAST to CardinalDirection.WEST -> 1
-//                else -> 0
-//            }
+            MqttTopicBuilder.LaneType.TRACK -> return when (groupStr) {
+                CardinalDirection.WEST to CardinalDirection.EAST -> 0
+                CardinalDirection.EAST to CardinalDirection.WEST -> 1
+                else -> 0
+            }
             else -> return -1
         }
     }

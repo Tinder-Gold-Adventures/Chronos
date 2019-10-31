@@ -8,7 +8,7 @@ class TrainTrack(
         override val directionTo: MqttTopicBuilder.CardinalDirection
 ) : ITrafficControl {
     override val componentId = 0
-    override val overrideSubgroup = 0
+    override val overrideSubgroup: Int? = null
     override val laneType = MqttTopicBuilder.LaneType.TRACK
     override val componentType = MqttTopicBuilder.ComponentType.SENSOR
     override lateinit var publisher: MqttPublisher

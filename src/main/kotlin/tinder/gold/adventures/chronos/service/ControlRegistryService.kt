@@ -45,6 +45,8 @@ class ControlRegistryService {
             CardinalDirection.WEST to TrainTrack(CardinalDirection.EAST),
             CardinalDirection.EAST to TrainTrack(CardinalDirection.WEST))
 
+    fun getTrainSensors() = trainTracks
+
     private val trainBarriers = listOf(
             TrainControlBarrier(0), // West fiets/voetpad
             TrainControlBarrier(1), // Autorijbaan Noord > Zuid

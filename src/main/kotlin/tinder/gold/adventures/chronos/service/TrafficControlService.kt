@@ -99,6 +99,18 @@ class TrafficControlService {
         GroupingService.Priority.updatePriorities(newGrouping)
     }
 
+    //TODO
+    fun activateTrainGroups() {
+        TODO("Create train groups, add green to traffic light state filter, put them on red." +
+                "Activate train lights, then barriers.")
+    }
+
+    // TODO
+    fun deactivateTrainGroups() {
+        TODO("Deactuate barriers, then deactivate warning lights, then clear traffic light state filters")
+    }
+
+
     fun resetScore(grouping: GroupingService.Grouping) {
         GroupingService.Sensors.getGroup(grouping)
                 .filterIsInstance<TrafficSensor>()

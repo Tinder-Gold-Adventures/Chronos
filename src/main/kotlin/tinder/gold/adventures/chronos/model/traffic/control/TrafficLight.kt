@@ -15,6 +15,9 @@ abstract class TrafficLight(
     var trafficLightState: TrafficLightState = TrafficLightState.Red
         protected set
 
+    val stateFilters = arrayListOf<TrafficLightState>()
+    fun mayChangeState(state: TrafficLightState) = !stateFilters.contains(state)
+
     fun turnGreen(client: MqttAsyncClient) {
         setState(TrafficLightState.Green, client)
     }
@@ -32,8 +35,7 @@ abstract class TrafficLight(
     }
 
     private fun setState(state: TrafficLightState, client: MqttAsyncClient) {
-        if (trafficLightState == state) return
-        // TODO check if allowed to change state
+        if (trafficLightState == state || !mayChangeState(state)) return
         trafficLightState = state
         with(trafficLightState) {
             publisher.sendState(client)

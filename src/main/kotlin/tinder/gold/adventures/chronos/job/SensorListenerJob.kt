@@ -13,6 +13,7 @@ import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.SensorTrackingService
+import tinder.gold.adventures.chronos.service.TrafficControlService
 
 /**
  * This job is responsible for listening on the Mqtt topics for sensors
@@ -30,6 +31,9 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
 
     @Autowired
     private lateinit var controlRegistryService: ControlRegistryService
+
+    @Autowired
+    private lateinit var trafficControlService: TrafficControlService
 
     fun run() = launch {
         logger.info { "Sensor listener job is starting..." }
@@ -58,9 +62,10 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
     }
 
     private fun trainSensorHandler(track: TrainTrack, topic: String, msg: MqttMessage) {
+        logger.info { "Train [${topic}]" }
         when (msg.getPayloadString()) {
-            "0" -> logger.info { "Train 0 [${track.subscriber.topic.name}]" }
-            "1" -> logger.info { "Train 1 [${track.subscriber.topic.name}]" }
+            "0" -> trafficControlService.deactivateTrainGroups()
+            "1" -> trafficControlService.activateTrainGroups()
             else -> logger.info { }
         }
     }

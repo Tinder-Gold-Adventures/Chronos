@@ -41,7 +41,7 @@ open class MqttTopicBuilderSubject(
             MqttTopicBuilder.LaneType.TRACK -> return when (groupStr) {
                 CardinalDirection.WEST to CardinalDirection.EAST -> 0
                 CardinalDirection.EAST to CardinalDirection.WEST -> 1
-                else -> -1
+                else -> 0
             }
             else -> return -1
         }

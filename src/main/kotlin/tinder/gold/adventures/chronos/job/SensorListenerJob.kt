@@ -8,12 +8,10 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.springframework.beans.factory.annotation.Autowired
 import tinder.gold.adventures.chronos.model.mqtt.QoSLevel
-import tinder.gold.adventures.chronos.model.traffic.control.TrainTrack
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.SensorTrackingService
-import tinder.gold.adventures.chronos.service.TrafficControlService
 import tinder.gold.adventures.chronos.service.TrafficFilterService
 
 /**
@@ -34,15 +32,13 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private lateinit var controlRegistryService: ControlRegistryService
 
     @Autowired
-    private lateinit var trafficControlService: TrafficControlService
-
-    @Autowired
     private lateinit var trafficFilterService: TrafficFilterService
 
     fun run() = launch {
         logger.info { "Sensor listener job is starting..." }
         launchMotorisedSensorListeners()
-        listenForTrain()
+        initTrackListener()
+//        initVesselListener()
         logger.info { "Listening.." }
     }
 
@@ -52,29 +48,57 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
     private fun launchMotorisedSensorListeners() {
         controlRegistryService.getMotorisedSensors()
                 .flatMap { it.value as ArrayList<TrafficSensor> }
-                .forEach(this::listenToTrafficControl)
+                .forEach(this::initTrafficControlListener)
     }
 
-    private fun listenForTrain() {
-        controlRegistryService.trainTracks.forEach {
+    private fun initVesselListener() {
+        controlRegistryService.vesselTracks.forEach {
             with(it.value.subscriber) {
                 client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->
-                    trainSensorHandler(it.value, topic, msg)
+                    vesselSensorHandler(topic, msg)
                 }
             }
         }
     }
 
-    private fun trainSensorHandler(track: TrainTrack, topic: String, msg: MqttMessage) {
-        logger.info { "Train [${topic}]" }
-        when (msg.getPayloadString()) {
-            "0" -> trafficFilterService.deactivateTrackGroups()
-            "1" -> trafficFilterService.activateTrackGroups()
-            else -> logger.info { }
+    private fun initTrackListener() {
+        controlRegistryService.trainTracks.forEach {
+            with(it.value.subscriber) {
+                client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->
+                    trainSensorHandler(topic, msg)
+                }
+            }
         }
     }
 
-    private fun listenToTrafficControl(control: TrafficSensor) {
+    private fun vesselSensorHandler(topic: String, msg: MqttMessage) {
+        logger.info { "Vessel [${topic}]" }
+        when (msg.getPayloadString()) {
+//            "0" -> trafficFilterService.deactivateVesselGroups()
+            "1" -> trafficFilterService.activateVesselGroups()
+            else -> logger.info { "Impossible value" }
+        }
+    }
+
+    private var trainGroup: Int? = null
+
+    private fun trainSensorHandler(topic: String, msg: MqttMessage) {
+        logger.info { "Train [${topic}]" }
+        when (msg.getPayloadString()) {
+            "1" -> {
+                val group = topic.split("/")[2].toInt()
+                if (trainGroup != null && group != trainGroup) {
+                    trafficFilterService.deactivateTrackGroups()
+                    trainGroup = null
+                } else {
+                    trafficFilterService.activateTrackGroups()
+                    trainGroup = group
+                }
+            }
+        }
+    }
+
+    private fun initTrafficControlListener(control: TrafficSensor) {
         with(control.subscriber) {
             client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->
                 when (val str = msg.getPayloadString()) {

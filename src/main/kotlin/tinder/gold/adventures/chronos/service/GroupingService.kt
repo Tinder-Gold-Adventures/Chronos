@@ -26,6 +26,7 @@ class GroupingService {
         )
 
         val TrainControls = arrayListOf<ITrafficControl>()
+        val VesselControls = arrayListOf<ITrafficControl>()
 
         fun getGroup(grouping: Grouping) = Groups[grouping]!!
     }
@@ -80,6 +81,7 @@ class GroupingService {
         initControls()
         initSensors()
         initTrainControls()
+        initVesselControls()
     }
 
     private fun initTrainControls() {
@@ -91,6 +93,16 @@ class GroupingService {
                 .union(controlRegistryService.getMotorisedControls(CardinalDirection.NORTH)
                         .filter { it.directionTo == CardinalDirection.SOUTH })
                 .toCollection(Controls.TrainControls)
+    }
+
+    private fun initVesselControls() {
+        controlRegistryService.getMotorisedControls(CardinalDirection.SOUTH)
+                .filter { it.directionTo == CardinalDirection.NORTH }
+                .union(controlRegistryService.getMotorisedControls(CardinalDirection.EAST)
+                        .filter { it.directionTo == CardinalDirection.NORTH })
+                .union(controlRegistryService.getMotorisedControls(CardinalDirection.WEST)
+                        .filter { it.directionTo == CardinalDirection.NORTH })
+                .toCollection(Controls.VesselControls)
     }
 
     private fun initControls() {

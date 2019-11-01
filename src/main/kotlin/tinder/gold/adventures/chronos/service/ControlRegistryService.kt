@@ -27,11 +27,11 @@ class ControlRegistryService {
             CardinalDirection.SOUTH to ArrayList<ISensor>(),
             CardinalDirection.WEST to ArrayList<ISensor>())
 
-    private val vesselTracks = hashMapOf(
+    val vesselTracks = hashMapOf(
             CardinalDirection.WEST to VesselTrack(CardinalDirection.EAST),
             CardinalDirection.EAST to VesselTrack(CardinalDirection.WEST))
 
-    private val vesselBarriers = listOf(
+    val vesselBarriers = listOf(
             VesselControlBarrier(0), // West fiets/voetpad
             VesselControlBarrier(1), // Autorijbaan Noord > Zuid
             VesselControlBarrier(2), // Autorijbaan Zuid > Noord
@@ -41,13 +41,11 @@ class ControlRegistryService {
             VesselControlBarrier(6), // Autorijbaan Zuid > Noord
             VesselControlBarrier(7)) // Oost fiets/voetpad
 
-    private val trainTracks = hashMapOf(
+    val trainTracks = hashMapOf(
             CardinalDirection.WEST to TrainTrack(CardinalDirection.EAST),
             CardinalDirection.EAST to TrainTrack(CardinalDirection.WEST))
 
-    fun getTrainSensors() = trainTracks
-
-    private val trainBarriers = listOf(
+    val trainBarriers = listOf(
             TrainControlBarrier(0), // West fiets/voetpad
             TrainControlBarrier(1), // Autorijbaan Noord > Zuid
             TrainControlBarrier(2), // Oost fietspad
@@ -58,8 +56,8 @@ class ControlRegistryService {
             TrainControlBarrier(7), // Autorijbaan Zuid > Noord/Oost
             TrainControlBarrier(8)) // Oost fiets/voetpad
 
-    private val trainWarningLights = TrainWarningLight()
-    private val vesselWarningLights = VesselWarningLight()
+    val trainWarningLights = TrainWarningLight()
+    val vesselWarningLights = VesselWarningLight()
 
     fun registerTrafficControl(laneType: LaneType, direction: CardinalDirection, control: ITrafficControl) {
         when (laneType) {

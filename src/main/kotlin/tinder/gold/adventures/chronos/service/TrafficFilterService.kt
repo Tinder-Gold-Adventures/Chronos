@@ -39,11 +39,11 @@ class TrafficFilterService {
                     it.turnYellow(client)
 
                 }
-                delay(4000L)
+                delay(1000L)
                 controls.forEach {
                     it.turnRed(client)
                 }
-                delay(2000L)
+                delay(1000L)
                 withBarriers.forEach {
                     it.close(client)
                 }
@@ -106,7 +106,7 @@ class TrafficFilterService {
                 controlRegistryService.trainBarriers.forEach {
                     it.open(client)
                 }
-                delay(10000L)
+                delay(1000L)
                 controlRegistryService.trainWarningLights.turnOff(client)
                 GroupingService.Controls.TrainControls
                         .map { it as TrafficLight }

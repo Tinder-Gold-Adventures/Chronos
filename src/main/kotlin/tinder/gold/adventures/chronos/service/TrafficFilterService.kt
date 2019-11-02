@@ -72,7 +72,7 @@ class TrafficFilterService {
                 controlRegistryService.vesselBarriers.forEach {
                     it.open(client)
                 }
-                delay(10000L)
+                delay(2000L)
                 controlRegistryService.vesselWarningLights.turnOff(client)
                 GroupingService.Controls.VesselControls
                         .map { it as TrafficLight }

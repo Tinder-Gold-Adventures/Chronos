@@ -13,6 +13,9 @@ import tinder.gold.adventures.chronos.mqtt.getPayloadString
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.SensorTrackingService
 import tinder.gold.adventures.chronos.service.TrafficFilterService
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timerTask
 
 /**
  * This job is responsible for listening on the Mqtt topics for sensors
@@ -38,7 +41,7 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
         logger.info { "Sensor listener job is starting..." }
         launchMotorisedSensorListeners()
         initTrackListener()
-//        initVesselListener()
+        initVesselListener()
         logger.info { "Listening.." }
     }
 
@@ -59,6 +62,16 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
                 }
             }
         }
+
+        fixedRateTimer(initialDelay = 60000L, period = 60000L) {
+            if (vesselCount > 0) {
+                vesselCount = 0
+                trafficFilterService.activateVesselGroups()
+                Timer("DeactivateVesselGroupsTimer", false).schedule(timerTask {
+                    trafficFilterService.deactivateVesselGroups()
+                }, 30000L)
+            }
+        }
     }
 
     private fun initTrackListener() {
@@ -71,12 +84,15 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
         }
     }
 
+    private var vesselCount = 0
+
+    // TODO track vessels better
     private fun vesselSensorHandler(topic: String, msg: MqttMessage) {
         logger.info { "Vessel [${topic}]" }
         when (msg.getPayloadString()) {
-//            "0" -> trafficFilterService.deactivateVesselGroups()
-            "1" -> trafficFilterService.activateVesselGroups()
-            else -> logger.info { "Impossible value" }
+            "1" -> {
+                vesselCount++
+            }
         }
     }
 

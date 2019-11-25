@@ -1,17 +1,16 @@
 package tinder.gold.adventures.chronos
 
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.Banner
-import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 import org.springframework.context.ConfigurableApplicationContext
 import tinder.gold.adventures.chronos.component.MqttBrokerConnector
-import tinder.gold.adventures.chronos.job.ChronosControlJob
 import javax.annotation.PostConstruct
 
+/**
+ * Our Spring Boot application
+ */
 @SpringBootApplication
 class ChronosApplication {
     companion object {
@@ -19,28 +18,13 @@ class ChronosApplication {
         lateinit var Context: ConfigurableApplicationContext
     }
 
-    init {
-        Logger.info { "Initializing Chronos..." }
-    }
-
     @Autowired
     private lateinit var mqttBrokerConnector: MqttBrokerConnector
-    @Autowired
-    private lateinit var client: MqttAsyncClient
 
     @PostConstruct
-    fun init() {
+    fun init() = runBlocking {
         mqttBrokerConnector.connect()
-        while (!client.isConnected);
     }
 
 }
 
-fun main(args: Array<String>) {
-    ChronosApplication.Context = runApplication<ChronosApplication>(*args) {
-        this.webApplicationType = WebApplicationType.NONE
-        this.setBannerMode(Banner.Mode.OFF)
-    }
-    // After connection, start the main parent job
-    ChronosControlJob().run()
-}

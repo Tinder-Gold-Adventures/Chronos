@@ -13,6 +13,4 @@ fun main(args: Array<String>) = runBlocking<Unit> {
         this.webApplicationType = WebApplicationType.NONE
         this.setBannerMode(Banner.Mode.OFF)
     }
-//    // After connection, start the main parent job
-//    ChronosControlJob().run()
 }

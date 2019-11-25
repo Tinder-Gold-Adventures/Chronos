@@ -1,4 +1,4 @@
-package tinder.gold.adventures.chronos.component
+package tinder.gold.adventures.chronos.mqtt
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.ChronosApplication
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.QoSLevel
-import tinder.gold.adventures.chronos.mqtt.getPayloadString
 
 @Component
 class MqttBrokerConnector : CoroutineScope by CoroutineScope(Dispatchers.IO) {

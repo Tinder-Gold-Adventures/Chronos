@@ -2,6 +2,8 @@ package tinder.gold.adventures.chronos.model.mqtt.builder
 
 import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
 
+infix fun MqttTopicBuilder.CardinalDirection.to(otherDir: MqttTopicBuilder.CardinalDirection): String = "${this.name.toLowerCase()}${otherDir.name.toLowerCase()}"
+
 object MqttTopicBuilder {
 
     //<team_id>/<lane_type>/<group_id>/<component_type>/<component_id>

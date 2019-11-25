@@ -61,18 +61,4 @@ class SensorController {
         controlRegistryService.vesselTracks.values
                 .forEach(vesselSensorListener::listen)
     }
-
-    // TODO move to DeckController
-//    private fun initVesselListener() {
-//        fixedRateTimer(initialDelay = 60000L, period = 60000L) {
-//            if (vesselCount > 0) {
-//                vesselCount = 0
-//                trafficFilterService.activateVesselGroups()
-//                Timer("DeactivateVesselGroupsTimer", false).schedule(timerTask {
-//                    trafficFilterService.deactivateVesselGroups()
-//                }, 30000L)
-//            }
-//        }
-//    }
-
 }

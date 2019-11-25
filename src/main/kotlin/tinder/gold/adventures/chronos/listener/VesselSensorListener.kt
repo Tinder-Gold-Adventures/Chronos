@@ -16,8 +16,14 @@ class VesselSensorListener : MqttListener<VesselTrack>() {
     @Autowired
     override lateinit var client: MqttAsyncClient
 
-    private var vesselCount = 0
+    final var vesselCount = 0
+        private set
 
+    fun reset() {
+        vesselCount = 0
+    }
+
+    // TODO improve
     override fun callback(topic: String, msg: MqttMessage) {
         when (msg.getPayloadString()) {
             "1" -> {

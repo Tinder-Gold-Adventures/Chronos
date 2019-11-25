@@ -46,7 +46,7 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
     }
 
     /**
-     * Get the sensors and launch a listener for each of them
+     * Launch a listener for motorised sensors
      */
     private fun launchMotorisedSensorListeners() {
         controlRegistryService.getMotorisedSensors()
@@ -114,6 +114,10 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
         }
     }
 
+    /**
+     * Launches a listener for the given sensor control and will forward
+     * the payload value to the sensor tracker
+     */
     private fun initTrafficControlListener(control: TrafficSensor) {
         with(control.subscriber) {
             client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->

@@ -16,7 +16,6 @@ interface ITrafficControl {
     val directionTo: CardinalDirection
     val laneType: LaneType
     val componentType: ComponentType
-    val overrideSubgroup: Int?
 
     var publisher : MqttPublisher
     var subscriber : MqttSubscriber

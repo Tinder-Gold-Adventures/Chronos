@@ -9,7 +9,6 @@ abstract class TrafficLight(
         override val directionTo: CardinalDirection,
         override val laneType: MqttTopicBuilder.LaneType,
         override val componentType: MqttTopicBuilder.ComponentType,
-        override val overrideSubgroup: Int? = null,
         override val componentId: Int = 0
 ) : ITrafficControl {
 

@@ -8,7 +8,6 @@ import tinder.gold.adventures.chronos.model.traffic.core.IWarningLight
 import tinder.gold.adventures.chronos.model.traffic.core.WarningLight
 
 class TrainWarningLight : WarningLight() {
-    override val overrideSubgroup: Int? = null
     override val directionTo = CardinalDirection.INVALID
     override val laneType = MqttTopicBuilder.LaneType.TRACK
     override val componentType = MqttTopicBuilder.ComponentType.WARNING_LIGHT

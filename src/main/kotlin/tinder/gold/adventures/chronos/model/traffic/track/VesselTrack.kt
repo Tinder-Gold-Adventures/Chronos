@@ -9,7 +9,6 @@ class VesselTrack(
         override val directionTo: MqttTopicBuilder.CardinalDirection
 ) : ITrafficControl {
     override val componentId = 0
-    override val overrideSubgroup: Int? = null
     override val laneType = MqttTopicBuilder.LaneType.VESSEL
     override val componentType = MqttTopicBuilder.ComponentType.SENSOR
     override lateinit var publisher: MqttPublisher

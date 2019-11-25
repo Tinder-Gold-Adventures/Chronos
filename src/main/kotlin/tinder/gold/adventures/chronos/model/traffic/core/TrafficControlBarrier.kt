@@ -12,7 +12,6 @@ abstract class TrafficControlBarrier(
     override var state: IControlBarrier.BarrierState = IControlBarrier.BarrierState.Open
     override val directionTo = MqttTopicBuilder.CardinalDirection.INVALID
     override val componentType = MqttTopicBuilder.ComponentType.BARRIER
-    override val overrideSubgroup: Int? = null
 
     override lateinit var publisher: MqttPublisher
     override lateinit var subscriber: MqttSubscriber

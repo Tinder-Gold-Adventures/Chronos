@@ -5,12 +5,11 @@ import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.traffic.core.ISensor
 
-class TrafficSensor(override val directionTo: MqttTopicBuilder.CardinalDirection,
-                    val location: Location,
-                    override val overrideSubgroup: Int? = null,
-                    override val laneType: MqttTopicBuilder.LaneType = MqttTopicBuilder.LaneType.MOTORISED,
-                    override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.SENSOR
-
+class TrafficSensor(
+        override val directionTo: MqttTopicBuilder.CardinalDirection,
+        val location: Location,
+        override val laneType: MqttTopicBuilder.LaneType = MqttTopicBuilder.LaneType.MOTORISED,
+        override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.SENSOR
 ) : ISensor {
 
     enum class Location {

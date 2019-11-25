@@ -1,4 +1,4 @@
-package tinder.gold.adventures.chronos.model.traffic.control
+package tinder.gold.adventures.chronos.model.traffic.core
 
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
 import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber

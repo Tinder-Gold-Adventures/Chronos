@@ -3,7 +3,7 @@ package tinder.gold.adventures.chronos.listener
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import tinder.gold.adventures.chronos.model.mqtt.QoSLevel
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 
 /**
  * Defines a generic listener that will subscribe to a control's topic

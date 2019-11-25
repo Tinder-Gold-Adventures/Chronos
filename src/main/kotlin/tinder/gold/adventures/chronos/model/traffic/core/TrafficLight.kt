@@ -1,8 +1,9 @@
-package tinder.gold.adventures.chronos.model.traffic.control
+package tinder.gold.adventures.chronos.model.traffic.core
 
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
+import tinder.gold.adventures.chronos.model.traffic.light.TrafficLightState
 
 abstract class TrafficLight(
         override val directionTo: CardinalDirection,

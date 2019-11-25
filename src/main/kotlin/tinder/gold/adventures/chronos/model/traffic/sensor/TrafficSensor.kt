@@ -3,6 +3,7 @@ package tinder.gold.adventures.chronos.model.traffic.sensor
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
 import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
+import tinder.gold.adventures.chronos.model.traffic.core.ISensor
 
 class TrafficSensor(override val directionTo: MqttTopicBuilder.CardinalDirection,
                     val location: Location,

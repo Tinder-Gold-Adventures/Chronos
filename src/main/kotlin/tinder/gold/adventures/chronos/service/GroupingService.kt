@@ -3,8 +3,8 @@ package tinder.gold.adventures.chronos.service
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
-import tinder.gold.adventures.chronos.model.traffic.sensor.ISensor
+import tinder.gold.adventures.chronos.model.traffic.core.ISensor
+import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 import javax.annotation.PostConstruct
 
 @Service

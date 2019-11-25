@@ -1,6 +1,4 @@
-package tinder.gold.adventures.chronos.model.traffic.sensor
-
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
+package tinder.gold.adventures.chronos.model.traffic.core
 
 interface ISensor : ITrafficControl {
     enum class ActuationState {

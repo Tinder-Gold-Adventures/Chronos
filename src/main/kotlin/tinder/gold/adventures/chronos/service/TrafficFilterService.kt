@@ -5,9 +5,9 @@ import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
-import tinder.gold.adventures.chronos.model.traffic.control.TrafficLight
-import tinder.gold.adventures.chronos.model.traffic.control.TrafficLightState
+import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
+import tinder.gold.adventures.chronos.model.traffic.light.TrafficLightState
 
 @Service
 class TrafficFilterService {

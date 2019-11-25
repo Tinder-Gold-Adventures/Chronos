@@ -5,7 +5,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import tinder.gold.adventures.chronos.model.traffic.control.VesselTrack
+import tinder.gold.adventures.chronos.model.traffic.track.VesselTrack
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 
 @Component

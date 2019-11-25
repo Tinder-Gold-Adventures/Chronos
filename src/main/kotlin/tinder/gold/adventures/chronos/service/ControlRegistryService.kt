@@ -5,9 +5,16 @@ import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.LaneType
-import tinder.gold.adventures.chronos.model.traffic.control.*
-import tinder.gold.adventures.chronos.model.traffic.sensor.ISensor
+import tinder.gold.adventures.chronos.model.traffic.barrier.TrainControlBarrier
+import tinder.gold.adventures.chronos.model.traffic.barrier.VesselControlBarrier
+import tinder.gold.adventures.chronos.model.traffic.core.ISensor
+import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
+import tinder.gold.adventures.chronos.model.traffic.light.TrainWarningLight
+import tinder.gold.adventures.chronos.model.traffic.light.VesselWarningLight
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
+import tinder.gold.adventures.chronos.model.traffic.track.TrainTrack
+import tinder.gold.adventures.chronos.model.traffic.track.VesselTrack
 import javax.annotation.PostConstruct
 
 @Service

@@ -16,10 +16,6 @@ sealed class TrafficLightState {
         override fun getPayload() = "0"
     }
 
-    object OutOfService : TrafficLightState() {
-        override fun getPayload() = "3"
-    }
-
     abstract fun getPayload(): String
     fun MqttPublisher.sendState(client: MqttAsyncClient) {
         with(this) {

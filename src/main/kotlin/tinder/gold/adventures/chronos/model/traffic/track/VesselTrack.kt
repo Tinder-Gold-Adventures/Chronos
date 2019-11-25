@@ -7,7 +7,6 @@ import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 
 class VesselTrack(
         override val directionTo: MqttTopicBuilder.CardinalDirection
-
 ) : ITrafficControl {
     override val componentId = 0
     override val overrideSubgroup: Int? = null

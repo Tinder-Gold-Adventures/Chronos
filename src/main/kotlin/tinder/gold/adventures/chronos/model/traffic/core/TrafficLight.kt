@@ -31,10 +31,6 @@ abstract class TrafficLight(
         setState(TrafficLightState.Red, client)
     }
 
-    fun turnOutOfService(client: MqttAsyncClient) {
-        setState(TrafficLightState.OutOfService, client)
-    }
-
     private fun setState(state: TrafficLightState, client: MqttAsyncClient) {
         if (trafficLightState == state || !mayChangeState(state)) return
         trafficLightState = state

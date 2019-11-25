@@ -1,6 +1,9 @@
 package tinder.gold.adventures.chronos.service
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,22 +27,18 @@ class TrafficControlService {
     private lateinit var sensorTrackingService: SensorTrackingService
 
     @PostConstruct
-    fun init() {
-        GlobalScope.launch {
-            withContext(this.coroutineContext) {
-                while (true) {
-                    updateLights()
-                    delay(8000L)
-                }
-            }
+    fun init() = runBlocking {
+        while (true) {
+            val delayTime = updateLights()
+            delay(delayTime)
         }
     }
 
-    suspend fun updateLights() {
+    private suspend fun updateLights(): Long {
         logger.info { "Lights timer..." }
         if (!sensorTrackingService.isConnected()) {
             logger.info { "Not connected yet, retrying in 8 sec..." }
-            return
+            return 8000L
         }
         var score = 0
         var highestScoring: GroupingService.Grouping? = null
@@ -66,6 +65,9 @@ class TrafficControlService {
         if (highestScoring != groupingService.activeGrouping) {
             updateGroups(highestScoring!!)
         }
+
+        // TODO proper propagation of events in the simulator e.g. if activated lanes are empty the new loop can already begin
+        return 8000L
     }
 
     suspend fun updateGroups(newGrouping: GroupingService.Grouping) {

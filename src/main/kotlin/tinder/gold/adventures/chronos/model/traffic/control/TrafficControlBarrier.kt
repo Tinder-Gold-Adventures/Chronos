@@ -1,28 +1,19 @@
 package tinder.gold.adventures.chronos.model.traffic.control
 
-class TrafficControlBarrier {
+import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
+import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 
-    // TODO future: opening & closing?
-    enum class BarrierState {
-        OPEN,
-        CLOSED
-    }
+abstract class TrafficControlBarrier(
+        override val laneType: MqttTopicBuilder.LaneType,
+        override val componentId: Int
+) : IControlBarrier {
 
-    var state: BarrierState = BarrierState.OPEN
-        private set
+    override var state: IControlBarrier.BarrierState = IControlBarrier.BarrierState.Open
+    override val directionTo = MqttTopicBuilder.CardinalDirection.INVALID
+    override val componentType = MqttTopicBuilder.ComponentType.BARRIER
+    override val overrideSubgroup: Int? = null
 
-    fun close() {
-        setState(BarrierState.CLOSED)
-    }
-
-    fun open() {
-        setState(BarrierState.OPEN)
-    }
-
-    private fun setState(state: BarrierState) {
-        if (this.state == state) return
-        // set opening
-        this.state = state
-        // TODO send mqtt message
-    }
+    override lateinit var publisher: MqttPublisher
+    override lateinit var subscriber: MqttSubscriber
 }

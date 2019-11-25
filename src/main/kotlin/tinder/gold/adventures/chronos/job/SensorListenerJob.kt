@@ -12,6 +12,10 @@ import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.SensorTrackingService
+import tinder.gold.adventures.chronos.service.TrafficFilterService
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
+import kotlin.concurrent.timerTask
 
 /**
  * This job is responsible for listening on the Mqtt topics for sensors
@@ -30,39 +34,102 @@ class SensorListenerJob : CoroutineScope by CoroutineScope(Dispatchers.IO) {
     @Autowired
     private lateinit var controlRegistryService: ControlRegistryService
 
+    @Autowired
+    private lateinit var trafficFilterService: TrafficFilterService
+
     fun run() = launch {
         logger.info { "Sensor listener job is starting..." }
-        launchListeners()
+        launchMotorisedSensorListeners()
+        initTrackListener()
+        initVesselListener()
         logger.info { "Listening.." }
     }
 
     /**
      * Get the sensors and launch a listener for each of them
      */
-    private fun launchListeners() {
+    private fun launchMotorisedSensorListeners() {
         controlRegistryService.getMotorisedSensors()
                 .flatMap { it.value as ArrayList<TrafficSensor> }
-                .forEach(this::listenToTrafficControl)
+                .forEach(this::initTrafficControlListener)
     }
 
-    private fun listenToTrafficControl(control: TrafficSensor) {
-        with(control.subscriber) {
-            client.subscribe(QoSLevel.QOS1, this@SensorListenerJob::cycleTrafficLightListener)
+    private fun initVesselListener() {
+        controlRegistryService.vesselTracks.forEach {
+            with(it.value.subscriber) {
+                client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->
+                    vesselSensorHandler(topic, msg)
+                }
+            }
+        }
+
+        fixedRateTimer(initialDelay = 60000L, period = 60000L) {
+            if (vesselCount > 0) {
+                vesselCount = 0
+                trafficFilterService.activateVesselGroups()
+                Timer("DeactivateVesselGroupsTimer", false).schedule(timerTask {
+                    trafficFilterService.deactivateVesselGroups()
+                }, 30000L)
+            }
         }
     }
 
-    private fun cycleTrafficLightListener(topic: String, msg: MqttMessage) {
-        when (val str = msg.getPayloadString()) {
-            "0" -> {
-                sensorTrackingService.putSensorValue(topic, 0)
-                logger.info { "$topic received 0 sensor value" }
+    private fun initTrackListener() {
+        controlRegistryService.trainTracks.forEach {
+            with(it.value.subscriber) {
+                client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->
+                    trainSensorHandler(topic, msg)
+                }
             }
+        }
+    }
+
+    private var vesselCount = 0
+
+    // TODO track vessels better
+    private fun vesselSensorHandler(topic: String, msg: MqttMessage) {
+        logger.info { "Vessel [${topic}]" }
+        when (msg.getPayloadString()) {
             "1" -> {
-                sensorTrackingService.putSensorValue(topic, 1)
-                logger.info { "$topic received 1 sensor value" }
+                vesselCount++
             }
-            else -> {
-                logger.error { "Impossible value on $topic: $str" }
+        }
+    }
+
+    private var trainGroup: Int? = null
+
+    private fun trainSensorHandler(topic: String, msg: MqttMessage) {
+        logger.info { "Train [${topic}]" }
+        when (msg.getPayloadString()) {
+            "1" -> {
+                val group = topic.split("/")[2].toInt()
+                if (trainGroup != null && group != trainGroup) {
+                    trafficFilterService.deactivateTrackGroups()
+                    trainGroup = null
+                } else {
+                    trafficFilterService.activateTrackGroups()
+                    trainGroup = group
+                }
+            }
+        }
+    }
+
+    private fun initTrafficControlListener(control: TrafficSensor) {
+        with(control.subscriber) {
+            client.subscribe(QoSLevel.QOS1) { topic: String, msg: MqttMessage ->
+                when (val str = msg.getPayloadString()) {
+                    "0" -> {
+                        sensorTrackingService.putSensorValue(topic, 0)
+                        logger.info { "$topic received 0 sensor value" }
+                    }
+                    "1" -> {
+                        sensorTrackingService.putSensorValue(topic, 1)
+                        logger.info { "$topic received 1 sensor value" }
+                    }
+                    else -> {
+                        logger.error { "Impossible value on $topic: $str" }
+                    }
+                }
             }
         }
     }

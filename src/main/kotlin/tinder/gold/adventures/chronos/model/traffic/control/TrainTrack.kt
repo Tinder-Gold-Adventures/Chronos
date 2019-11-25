@@ -3,14 +3,14 @@ package tinder.gold.adventures.chronos.model.traffic.control
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
 import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
-import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 
-class TrainWarningLight : WarningLight() {
+class TrainTrack(
+        override val directionTo: MqttTopicBuilder.CardinalDirection
+) : ITrafficControl {
+    override val componentId = 0
     override val overrideSubgroup: Int? = null
-    override val directionTo = CardinalDirection.INVALID
     override val laneType = MqttTopicBuilder.LaneType.TRACK
-    override val componentType = MqttTopicBuilder.ComponentType.WARNING_LIGHT
-    override var state: IWarningLight.WarningLightState = IWarningLight.WarningLightState.Off
+    override val componentType = MqttTopicBuilder.ComponentType.SENSOR
     override lateinit var publisher: MqttPublisher
     override lateinit var subscriber: MqttSubscriber
 }

@@ -38,30 +38,13 @@ class ControlRegistryService {
             CardinalDirection.WEST to VesselTrack(CardinalDirection.EAST),
             CardinalDirection.EAST to VesselTrack(CardinalDirection.WEST))
 
-    val vesselBarriers = listOf(
-            VesselControlBarrier(0), // West fiets/voetpad
-            VesselControlBarrier(1), // Autorijbaan Noord > Zuid
-            VesselControlBarrier(2), // Autorijbaan Zuid > Noord
-            VesselControlBarrier(3), // Oost fiets/voetpad
-            VesselControlBarrier(4), // West fiets/voetpad
-            VesselControlBarrier(5), // Autorijbaan Noord > Zuid
-            VesselControlBarrier(6), // Autorijbaan Zuid > Noord
-            VesselControlBarrier(7)) // Oost fiets/voetpad
+    val vesselBarriers = VesselControlBarrier()
 
     val trainTracks = hashMapOf(
             CardinalDirection.WEST to TrainTrack(CardinalDirection.EAST),
             CardinalDirection.EAST to TrainTrack(CardinalDirection.WEST))
 
-    val trainBarriers = listOf(
-            TrainControlBarrier(0), // West fiets/voetpad
-            TrainControlBarrier(1), // Autorijbaan Noord > Zuid
-            TrainControlBarrier(2), // Oost fietspad
-            TrainControlBarrier(3), // Oost voetpad
-            TrainControlBarrier(4), // West voetpad
-            TrainControlBarrier(5), // West fietspad
-            TrainControlBarrier(6), // Autorijbaan Zuid > West
-            TrainControlBarrier(7), // Autorijbaan Zuid > Noord/Oost
-            TrainControlBarrier(8)) // Oost fiets/voetpad
+    val trainBarriers = TrainControlBarrier()
 
     val trainWarningLights = TrainWarningLight()
     val vesselWarningLights = VesselWarningLight()
@@ -132,11 +115,8 @@ class ControlRegistryService {
         trainTracks.forEach { (dir, track) ->
             logger.info { "Initialised ${setMqttProperties(dir, track)}" }
         }
-        vesselBarriers.map { it as ITrafficControl }
-                .union(trainBarriers)
-                .forEach {
-                    logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, it)}" }
-                }
+        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, vesselBarriers)}" }
+        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, trainBarriers)}" }
         logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, trainWarningLights)}" }
         logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, vesselWarningLights)}" }
     }

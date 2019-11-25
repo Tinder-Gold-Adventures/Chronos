@@ -57,9 +57,7 @@ class TrafficFilterService {
             controlRegistryService.vesselWarningLights.turnOn(client)
             delay(5000L)
             //check if bridge is clear
-            controlRegistryService.vesselBarriers.forEach {
-                it.close(client)
-            }
+            controlRegistryService.vesselBarriers.close(client)
             delay(4000L)
             //check if bridge is clear
             //openDeck()
@@ -71,9 +69,7 @@ class TrafficFilterService {
     fun deactivateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Deactivating vessel groups" }
 
-        controlRegistryService.vesselBarriers.forEach {
-            it.open(client)
-        }
+        controlRegistryService.vesselBarriers.open(client)
         delay(4000L)
         controlRegistryService.vesselWarningLights.turnOff(client)
         removeStateFiltersFromControls(GroupingService.Controls.VesselControls)
@@ -88,9 +84,7 @@ class TrafficFilterService {
         launch(Dispatchers.IO) {
             controlRegistryService.trainWarningLights.turnOn(client)
             delay(5000L)
-            controlRegistryService.trainBarriers.forEach {
-                it.close(client)
-            }
+            controlRegistryService.trainBarriers.close(client)
             delay(4000L)
             //check if barriers closed
         }
@@ -102,9 +96,7 @@ class TrafficFilterService {
         logger.info { "Deactivating train groups" }
 
         //check if no sensor activated
-        controlRegistryService.trainBarriers.forEach {
-            it.open(client)
-        }
+        controlRegistryService.trainBarriers.open(client)
         delay(4000L)
         //check if barriers opened
         controlRegistryService.trainWarningLights.turnOff(client)

@@ -28,6 +28,7 @@ class MqttBrokerConnector : CoroutineScope by CoroutineScope(Dispatchers.IO) {
         internalConnect(options.apply {
             isCleanSession = true // Always attempt a clean session
             isAutomaticReconnect = true // Always attempt reconnecting
+            maxInflight = 100
         })
     }
 

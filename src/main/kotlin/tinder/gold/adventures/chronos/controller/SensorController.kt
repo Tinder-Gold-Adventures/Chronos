@@ -50,7 +50,7 @@ class SensorController {
      * Launch listeners for track sensors
      */
     private fun launchTrackSensorListeners() {
-        controlRegistryService.trainTracks.values
+        controlRegistryService.trackSensors.values
                 .forEach(trackSensorListener::listen)
     }
 
@@ -58,7 +58,7 @@ class SensorController {
      * Launch listeners for vessel sensors
      */
     private fun launchVesselSensorListeners() {
-        controlRegistryService.vesselTracks.values
+        controlRegistryService.vesselSensors.values
                 .forEach(vesselSensorListener::listen)
     }
 }

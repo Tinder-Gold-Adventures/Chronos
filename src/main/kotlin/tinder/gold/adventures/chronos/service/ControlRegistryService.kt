@@ -14,9 +14,9 @@ import tinder.gold.adventures.chronos.model.traffic.light.BoatLight
 import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.TrainWarningLight
 import tinder.gold.adventures.chronos.model.traffic.light.VesselWarningLight
+import tinder.gold.adventures.chronos.model.traffic.sensor.TrackSensor
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
-import tinder.gold.adventures.chronos.model.traffic.track.TrainTrack
-import tinder.gold.adventures.chronos.model.traffic.track.VesselTrack
+import tinder.gold.adventures.chronos.model.traffic.sensor.VesselSensor
 import javax.annotation.PostConstruct
 
 @Service
@@ -38,29 +38,30 @@ class ControlRegistryService {
             CardinalDirection.WEST to ArrayList<ISensor>()
     )
 
-    val vesselTracks = hashMapOf(
-            CardinalDirection.WEST to VesselTrack(CardinalDirection.WEST, 0),
-            CardinalDirection.INVALID to VesselTrack(CardinalDirection.INVALID, 1),
-            CardinalDirection.EAST to VesselTrack(CardinalDirection.EAST, 2)
+    val vesselSensors = hashMapOf(
+            CardinalDirection.WEST to VesselSensor(CardinalDirection.WEST, 0), // Sensor oost -> west
+            CardinalDirection.INVALID to VesselSensor(CardinalDirection.INVALID, 1), // Sensor onder brug
+            CardinalDirection.EAST to VesselSensor(CardinalDirection.EAST, 2), // Sensor west -> oost
+            CardinalDirection.INVALID to VesselSensor(CardinalDirection.INVALID, 3) // Brugdek
     )
 
     val vesselLights = hashMapOf(
-            CardinalDirection.WEST to BoatLight(CardinalDirection.WEST, 0),
-            CardinalDirection.EAST to BoatLight(CardinalDirection.EAST, 1)
+            CardinalDirection.WEST to BoatLight(CardinalDirection.WEST, 0), // Eastern light
+            CardinalDirection.EAST to BoatLight(CardinalDirection.EAST, 1) // Western light
     )
 
     val vesselBarriers = VesselControlBarrier()
+    val vesselWarningLights = VesselWarningLight()
     val vesselDeck = VesselDeck()
 
-    val trainTracks = hashMapOf(
-            CardinalDirection.WEST to TrainTrack(CardinalDirection.WEST, 0),
-            CardinalDirection.INVALID to TrainTrack(CardinalDirection.INVALID, 1),
-            CardinalDirection.EAST to TrainTrack(CardinalDirection.EAST, 2)
+    val trackSensors = hashMapOf(
+            CardinalDirection.WEST to TrackSensor(CardinalDirection.WEST, 0),
+            CardinalDirection.INVALID to TrackSensor(CardinalDirection.INVALID, 1),
+            CardinalDirection.EAST to TrackSensor(CardinalDirection.EAST, 2)
     )
 
-    val trainBarriers = TrainControlBarrier()
-    val trainWarningLights = TrainWarningLight()
-    val vesselWarningLights = VesselWarningLight()
+    val trackBarriers = TrainControlBarrier()
+    val trackWarningLights = TrainWarningLight()
 
     fun registerTrafficControl(laneType: LaneType, direction: CardinalDirection, control: ITrafficControl) {
         when (laneType) {
@@ -68,8 +69,8 @@ class ControlRegistryService {
                 if (control is ISensor) registerTrafficControl(motorisedSensors, direction, control)
                 else registerTrafficControl(motorised, direction, control)
             }
-            LaneType.FOOT -> TODO()
-            LaneType.CYCLE -> TODO()
+            LaneType.FOOT -> TODO("Foot lanes not yet implemented")
+            LaneType.CYCLE -> TODO("Cycle lanes not yet implemented")
             LaneType.VESSEL -> {
                 logger.warn { "No vessel controls have to be registered" }
             }
@@ -124,18 +125,18 @@ class ControlRegistryService {
     private fun initControls() {
         fun init(dir: CardinalDirection, control: ITrafficControl) = logger.info { "Initialised ${setMqttProperties(dir, control)}" }
 
-        vesselTracks.forEach { (dir, track) ->
+        vesselSensors.forEach { (dir, track) ->
             init(dir, track)
         }
-        trainTracks.forEach { (dir, track) ->
+        trackSensors.forEach { (dir, track) ->
             init(dir, track)
         }
         vesselLights.forEach { (dir, light) ->
             init(dir, light)
         }
         init(CardinalDirection.INVALID, vesselBarriers)
-        init(CardinalDirection.INVALID, trainBarriers)
-        init(CardinalDirection.INVALID, trainWarningLights)
+        init(CardinalDirection.INVALID, trackBarriers)
+        init(CardinalDirection.INVALID, trackWarningLights)
         init(CardinalDirection.INVALID, vesselWarningLights)
         init(CardinalDirection.INVALID, vesselDeck)
     }

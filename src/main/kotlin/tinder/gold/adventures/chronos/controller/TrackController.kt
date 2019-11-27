@@ -36,11 +36,11 @@ class TrackController {
 
         val controlsToTurnRed = trafficFilterService.blockTrafficLights(GroupingService.Controls.TrainControls.map { it as TrafficLight })
         launch(Dispatchers.IO) {
-            controlRegistryService.trainWarningLights.turnOn(client)
+            controlRegistryService.trackWarningLights.turnOn(client)
             delay(5000L)
-            controlRegistryService.trainBarriers.close(client)
+            controlRegistryService.trackBarriers.close(client)
             delay(4000L)
-            check(controlRegistryService.trainBarriers.state == BarrierState.Closed)
+            check(controlRegistryService.trackBarriers.state == BarrierState.Closed)
 
             logger.info { "Activated train groups" }
         }
@@ -51,10 +51,10 @@ class TrackController {
         logger.info { "Deactivating train groups" }
 
         //check if no sensor activated
-        controlRegistryService.trainBarriers.open(client)
+        controlRegistryService.trackBarriers.open(client)
         delay(4000L)
-        check(controlRegistryService.trainBarriers.state == BarrierState.Open)
-        controlRegistryService.trainWarningLights.turnOff(client)
+        check(controlRegistryService.trackBarriers.state == BarrierState.Open)
+        controlRegistryService.trackWarningLights.turnOff(client)
         trafficFilterService.allowTrafficLights(GroupingService.Controls.TrainControls)
 
         logger.info { "Deactivated train groups" }

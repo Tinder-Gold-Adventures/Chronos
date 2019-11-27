@@ -42,16 +42,14 @@ class DeckController {
         // launch a new coroutine so we don't block the spring initializer
         GlobalScope.launch {
             while (true) {
+                // TODO when to trigger?
                 if (vesselSensorListener.vesselCount > 0) {
-
-                    vesselSensorListener.reset()
                     val rendezvousChannel = Channel<Unit>(0)
 
                     // control process
                     launch(this.coroutineContext) {
-                        while (true) {
-                            delay(30000L)
-                            // todo check boat sensors, continue?
+                        while (vesselSensorListener.vesselCount > 0) {
+                            delay(5000L)
                             break
                         }
                         deactivateVesselGroups()
@@ -66,30 +64,53 @@ class DeckController {
         }
     }
 
-    fun activateVesselGroups() = runBlocking {
+    fun activateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Activating vessel groups" }
 
         val lights = GroupingService.Controls.VesselControls.map { it as TrafficLight }
         val controlsToTurnRed = trafficFilterService.blockTrafficLights(lights)
-        launch(Dispatchers.IO) {
-            controlRegistryService.vesselWarningLights.turnOn(client)
-            delay(5000L)
-            //check if bridge is clear
-            controlRegistryService.vesselBarriers.close(client)
-            delay(4000L)
-            //check if bridge is clear
-            //openDeck()
-            //delay(10000L)
+        launch {
+            lightController.turnOffLightsDelayed(controlsToTurnRed)
         }
-        lightController.turnOffLightsDelayed(controlsToTurnRed)
+
+        // Turn on warning lights
+        controlRegistryService.vesselWarningLights.turnOn(client)
+        // Wait until deck is clear
+        while (vesselSensorListener.deckActivated) {
+            delay(1000L)
+        }
+        // Close the barriers
+        controlRegistryService.vesselBarriers.close(client)
+        delay(4000L)
+        // Open the deck
+        controlRegistryService.vesselDeck.open(client)
+        delay(10000L)
+        // Turn off the vessel lights
+        controlRegistryService.vesselLights.forEach { (_, light) ->
+            light.turnYellow(client)
+        }
     }
 
     fun deactivateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Deactivating vessel groups" }
 
+        // Turn on the vessel lights
+        controlRegistryService.vesselLights.forEach { (_, light) ->
+            light.turnRed(client)
+        }
+        // Wait until no boat is passing through
+        while (vesselSensorListener.passingThrough) {
+            delay(1000L)
+        }
+        // Close the deck
+        controlRegistryService.vesselDeck.close(client)
+        delay(10000L)
+        // Open the barriers
         controlRegistryService.vesselBarriers.open(client)
         delay(4000L)
+        // Turn off warning lights
         controlRegistryService.vesselWarningLights.turnOff(client)
+        // Allow the traffic controls again
         trafficFilterService.allowTrafficLights(GroupingService.Controls.VesselControls)
 
         logger.info { "Deactivated vessel groups" }

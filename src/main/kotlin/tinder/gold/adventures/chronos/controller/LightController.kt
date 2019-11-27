@@ -20,7 +20,7 @@ class LightController {
 
     suspend fun turnOffLightsDelayed(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
         turnLightsYellow(controls)
-        delay(1500L)
+        delay(3000L)
         turnLightsRed(controls)
     }
 

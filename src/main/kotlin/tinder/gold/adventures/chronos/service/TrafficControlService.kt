@@ -1,6 +1,8 @@
 package tinder.gold.adventures.chronos.service
 
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,9 +28,11 @@ class TrafficControlService {
 
     @PostConstruct
     fun init() = runBlocking {
-        while (true) {
-            val delayTime = updateLights()
-            delay(delayTime)
+        GlobalScope.launch {
+            while (true) {
+                val delayTime = updateLights()
+                delay(delayTime)
+            }
         }
     }
 

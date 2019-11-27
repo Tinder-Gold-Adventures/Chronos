@@ -28,16 +28,24 @@ class TrackSensorListener : MqttListener<TrainTrack>() {
     private var trainGroup: Int? = null
 
     override fun callback(topic: String, msg: MqttMessage) {
-        when (msg.getPayloadString()) {
-            "1" -> {
-                val group = topic.split("/")[2].toInt()
-                if (trainGroup != null && group != trainGroup) {
-                    trackController.deactivateTrackGroups()
-                    trainGroup = null
-                } else {
-                    trackController.activateTrackGroups()
-                    trainGroup = group
+        if (msg.getPayloadString() != "1") return
+
+        val componentId = topic.split("/").last().toInt()
+
+        when {
+            trainGroup == null -> {
+                when (componentId) {
+                    0, 2 -> {
+                        trackController.activateTrackGroups()
+                        trainGroup = componentId
+                    }
                 }
+            }
+            componentId == 1 -> {
+                trackController.deactivateTrackGroups()
+            }
+            else -> {
+                trainGroup = null
             }
         }
     }

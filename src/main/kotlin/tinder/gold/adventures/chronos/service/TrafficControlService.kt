@@ -40,28 +40,8 @@ class TrafficControlService {
             logger.info { "Not connected yet, retrying in 8 sec..." }
             return 8000L
         }
-        var score = 0
-        var highestScoring: GroupingService.Grouping? = null
 
-        val groupings = GroupingService.Grouping::class.sealedSubclasses
-        var highestPriority = 0
-        groupings.forEach {
-            val grouping = it.objectInstance!!
-            val priority = GroupingService.Priority.getPriority(grouping)
-            if (priority > highestPriority)
-                highestPriority = priority
-        }
-        groupings.filter { GroupingService.Priority.getPriority(it.objectInstance!!) == highestPriority }
-                .forEach {
-                    val grouping = it.objectInstance!!
-                    val groupingScore = groupingService.getGroupScore(grouping)
-
-                    if (groupingScore > score || highestScoring == null) {
-                        score = groupingScore
-                        highestScoring = grouping
-                    }
-                }
-
+        val highestScoring = groupingService.getHighestScoringGroup()
         if (highestScoring != groupingService.activeGrouping) {
             updateGroups(highestScoring!!)
         }
@@ -72,6 +52,7 @@ class TrafficControlService {
 
     suspend fun updateGroups(newGrouping: GroupingService.Grouping) {
         logger.info { "Updating active group to: $newGrouping" }
+
         if (groupingService.activeGrouping != null) {
             logger.info { "Disabling previous group..." }
 

@@ -59,6 +59,18 @@ class GroupingService {
                 }
             }
         }
+
+        fun getHighestPriority(): Int {
+            val groupings = Grouping::class.sealedSubclasses
+            var highestPriority = 0
+            groupings.forEach {
+                val grouping = it.objectInstance!!
+                val priority = getPriority(grouping)
+                if (priority > highestPriority)
+                    highestPriority = priority
+            }
+            return highestPriority
+        }
     }
 
     @Autowired
@@ -76,6 +88,24 @@ class GroupingService {
             Sensors.getGroup(grouping).sumBy {
                 sensorTrackingService.getActiveCount(it.subscriber.topic.name)
             }
+
+    fun getHighestScoringGroup(): Grouping? {
+        var score = 0
+        var highestScoring: Grouping? = null
+        val groupings = Grouping::class.sealedSubclasses
+        val highestPriority = Priority.getHighestPriority()
+        groupings.filter { Priority.getPriority(it.objectInstance!!) == highestPriority }
+                .forEach {
+                    val grouping = it.objectInstance!!
+                    val groupingScore = getGroupScore(grouping)
+
+                    if (groupingScore > score || highestScoring == null) {
+                        score = groupingScore
+                        highestScoring = grouping
+                    }
+                }
+        return highestScoring
+    }
 
     private fun initGroups() {
         initControls()

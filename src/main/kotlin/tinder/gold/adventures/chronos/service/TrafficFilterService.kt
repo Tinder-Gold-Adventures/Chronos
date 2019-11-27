@@ -9,6 +9,7 @@ import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.TrafficLightState
 
+// TODO refactor (split into Controller classes. Filter service only for filtering groups)
 @Service
 class TrafficFilterService {
 

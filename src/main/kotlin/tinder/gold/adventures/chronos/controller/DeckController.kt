@@ -71,7 +71,7 @@ class DeckController {
             //openDeck()
             //delay(10000L)
         }
-        lightController.turnOffLights(controlsToTurnRed)
+        lightController.turnOffLightsDelayed(controlsToTurnRed)
     }
 
     fun deactivateVesselGroups() = runBlocking(Dispatchers.IO) {

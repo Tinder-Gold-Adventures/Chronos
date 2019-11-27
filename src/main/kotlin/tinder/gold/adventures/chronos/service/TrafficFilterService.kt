@@ -1,7 +1,5 @@
 package tinder.gold.adventures.chronos.service
 
-import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
@@ -9,11 +7,6 @@ import tinder.gold.adventures.chronos.model.traffic.light.TrafficLightState
 
 @Service
 class TrafficFilterService {
-
-    private val logger = KotlinLogging.logger { }
-
-    @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
 
     /**
      * Will add green to the lights' state filter, disallowing it from turning green
@@ -39,8 +32,4 @@ class TrafficFilterService {
                     it.stateFilters.remove(TrafficLightState.Green)
                 }
     }
-
-
-
-
 }

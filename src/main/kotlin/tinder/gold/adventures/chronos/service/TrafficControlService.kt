@@ -1,13 +1,11 @@
 package tinder.gold.adventures.chronos.service
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import tinder.gold.adventures.chronos.controller.LightController
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import javax.annotation.PostConstruct
@@ -18,13 +16,13 @@ class TrafficControlService {
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var client: MqttAsyncClient
-
-    @Autowired
     private lateinit var groupingService: GroupingService
 
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
+
+    @Autowired
+    private lateinit var lightController: LightController
 
     @PostConstruct
     fun init() = runBlocking {
@@ -59,24 +57,16 @@ class TrafficControlService {
             val lights = GroupingService.Controls.getGroup(groupingService.activeGrouping!!)
                     .filterIsInstance<TrafficLight>()
 
-            lights.forEach {
-                it.turnYellow(client)
-            }
-            delay(3000L)
-            lights.forEach {
-                it.turnRed(client)
-            }
+            lightController.turnOffLightsDelayed(lights)
             delay(3000L)
         }
+
         logger.info { "Enabling new group... $newGrouping" }
-        GroupingService.Controls.getGroup(newGrouping)
-                .filterIsInstance<TrafficLight>()
-                .forEach {
-                    withContext(Dispatchers.IO) {
-                        it.turnGreen(client)
-                    }
-                }
+
+        val lights = GroupingService.Controls.getGroup(newGrouping).filterIsInstance<TrafficLight>()
+        lightController.turnOnLights(lights)
         groupingService.activeGrouping = newGrouping
+
         logger.info { "Updating priorities" }
         resetScore(newGrouping)
         GroupingService.Priority.updatePriorities(newGrouping)

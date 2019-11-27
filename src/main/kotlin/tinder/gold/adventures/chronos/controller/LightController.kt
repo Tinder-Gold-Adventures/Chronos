@@ -18,7 +18,7 @@ class LightController {
     @Autowired
     private lateinit var client: MqttAsyncClient
 
-    suspend fun turnOffLights(controls: ArrayList<TrafficLight>) = withContext(Dispatchers.IO) {
+    suspend fun turnOffLightsDelayed(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
         turnLightsYellow(controls)
         delay(1500L)
         turnLightsRed(controls)
@@ -32,15 +32,23 @@ class LightController {
         light.turnRed(client)
     }
 
-    fun CoroutineScope.turnLightsYellow(controls: ArrayList<TrafficLight>) {
-        controls.forEach { it.turnYellow(client) }
-    }
-
-    fun CoroutineScope.turnLightsRed(controls: ArrayList<TrafficLight>) {
+    suspend fun turnOffLights(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
         controls.forEach { it.turnRed(client) }
     }
 
-    fun CoroutineScope.turnLightsGreen(controls: ArrayList<TrafficLight>) {
+    suspend fun turnOnLights(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
+        controls.forEach { it.turnRed(client) }
+    }
+
+    fun CoroutineScope.turnLightsYellow(controls: List<TrafficLight>) {
+        controls.forEach { it.turnYellow(client) }
+    }
+
+    fun CoroutineScope.turnLightsRed(controls: List<TrafficLight>) {
+        controls.forEach { it.turnRed(client) }
+    }
+
+    fun CoroutineScope.turnLightsGreen(controls: List<TrafficLight>) {
         controls.forEach { it.turnRed(client) }
     }
 }

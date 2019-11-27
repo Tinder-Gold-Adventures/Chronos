@@ -44,7 +44,7 @@ class TrackController {
 
             logger.info { "Activated train groups" }
         }
-        lightController.turnOffLights(controlsToTurnRed)
+        lightController.turnOffLightsDelayed(controlsToTurnRed)
     }
 
     fun deactivateTrackGroups() = runBlocking(Dispatchers.IO) {

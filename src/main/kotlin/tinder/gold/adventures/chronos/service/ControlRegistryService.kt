@@ -9,6 +9,7 @@ import tinder.gold.adventures.chronos.model.traffic.barrier.TrainControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.barrier.VesselControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.core.ISensor
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.deck.VesselDeck
 import tinder.gold.adventures.chronos.model.traffic.light.BoatLight
 import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.TrainWarningLight
@@ -49,6 +50,7 @@ class ControlRegistryService {
     )
 
     val vesselBarriers = VesselControlBarrier()
+    val vesselDeck = VesselDeck()
 
     val trainTracks = hashMapOf(
             CardinalDirection.WEST to TrainTrack(CardinalDirection.WEST, 0),
@@ -135,6 +137,7 @@ class ControlRegistryService {
         init(CardinalDirection.INVALID, trainBarriers)
         init(CardinalDirection.INVALID, trainWarningLights)
         init(CardinalDirection.INVALID, vesselWarningLights)
+        init(CardinalDirection.INVALID, vesselDeck)
     }
 
     private fun registerNorthMotorisedControls() {

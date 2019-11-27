@@ -8,6 +8,7 @@ import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tinder.gold.adventures.chronos.model.traffic.core.IControlBarrier.BarrierState
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.GroupingService
@@ -39,7 +40,9 @@ class TrackController {
             delay(5000L)
             controlRegistryService.trainBarriers.close(client)
             delay(4000L)
-            //check if barriers closed
+            check(controlRegistryService.trainBarriers.state == BarrierState.Closed)
+
+            logger.info { "Activated train groups" }
         }
         lightController.turnOffLights(controlsToTurnRed)
     }
@@ -50,7 +53,7 @@ class TrackController {
         //check if no sensor activated
         controlRegistryService.trainBarriers.open(client)
         delay(4000L)
-        //check if barriers opened
+        check(controlRegistryService.trainBarriers.state == BarrierState.Open)
         controlRegistryService.trainWarningLights.turnOff(client)
         trafficFilterService.allowTrafficLights(GroupingService.Controls.TrainControls)
 

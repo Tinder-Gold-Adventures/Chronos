@@ -26,17 +26,17 @@ interface IControlBarrier : ITrafficControl {
 
     fun open(client: MqttAsyncClient) {
         if (state == BarrierState.Open) return
-        state = BarrierState.Open
         with(state) {
             publisher.sendState(client)
         }
+        state = BarrierState.Open
     }
 
     fun close(client: MqttAsyncClient) {
         if (state == BarrierState.Closed) return
-        state = BarrierState.Closed
         with(state) {
             publisher.sendState(client)
         }
+        state = BarrierState.Closed
     }
 }

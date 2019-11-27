@@ -9,7 +9,8 @@ class TrafficSensor(
         override val directionTo: MqttTopicBuilder.CardinalDirection,
         val location: Location,
         override val laneType: MqttTopicBuilder.LaneType = MqttTopicBuilder.LaneType.MOTORISED,
-        override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.SENSOR
+        override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.SENSOR,
+        private val componentIdOffset: Int = 0
 ) : ISensor {
 
     enum class Location {
@@ -18,7 +19,7 @@ class TrafficSensor(
     }
 
     override val componentId: Int
-        get() = if (location == Location.CLOSE) 0 else 1
+        get() = (if (location == Location.CLOSE) 0 else 1) + componentIdOffset
 
     override lateinit var publisher: MqttPublisher
     override lateinit var subscriber: MqttSubscriber

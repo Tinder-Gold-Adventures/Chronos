@@ -5,10 +5,15 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tinder.gold.adventures.chronos.controller.TrackController
 import tinder.gold.adventures.chronos.model.traffic.track.TrainTrack
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
-import tinder.gold.adventures.chronos.service.TrafficFilterService
 
+// TODO refactor logic
+/**
+ * The Track sensor that listens to the sensors of the train track
+ * and that will trigger the necessary actions when a train will pass traffic
+ */
 @Component
 class TrackSensorListener : MqttListener<TrainTrack>() {
 
@@ -18,7 +23,7 @@ class TrackSensorListener : MqttListener<TrainTrack>() {
     override lateinit var client: MqttAsyncClient
 
     @Autowired
-    private lateinit var trafficFilterService: TrafficFilterService
+    private lateinit var trackController: TrackController
 
     private var trainGroup: Int? = null
 
@@ -27,10 +32,10 @@ class TrackSensorListener : MqttListener<TrainTrack>() {
             "1" -> {
                 val group = topic.split("/")[2].toInt()
                 if (trainGroup != null && group != trainGroup) {
-                    trafficFilterService.deactivateTrackGroups()
+                    trackController.deactivateTrackGroups()
                     trainGroup = null
                 } else {
-                    trafficFilterService.activateTrackGroups()
+                    trackController.activateTrackGroups()
                     trainGroup = group
                 }
             }

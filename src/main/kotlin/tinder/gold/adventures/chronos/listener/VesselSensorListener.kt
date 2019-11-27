@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.model.traffic.track.VesselTrack
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 
+/**
+ * The vessel sensor listener will keep track of vessels triggering sensors
+ */
 @Component
 class VesselSensorListener : MqttListener<VesselTrack>() {
 

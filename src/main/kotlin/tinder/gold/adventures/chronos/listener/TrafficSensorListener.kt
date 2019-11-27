@@ -9,6 +9,9 @@ import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 import tinder.gold.adventures.chronos.service.SensorTrackingService
 
+/**
+ * The traffic sensor listener keeps track of traffic sensors being triggered
+ */
 @Component
 class TrafficSensorListener : MqttListener<TrafficSensor>() {
 

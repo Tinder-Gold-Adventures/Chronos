@@ -9,6 +9,7 @@ import tinder.gold.adventures.chronos.model.traffic.barrier.TrainControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.barrier.VesselControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.core.ISensor
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.light.BoatLight
 import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.TrainWarningLight
 import tinder.gold.adventures.chronos.model.traffic.light.VesselWarningLight
@@ -26,25 +27,34 @@ class ControlRegistryService {
             CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
             CardinalDirection.EAST to ArrayList<ITrafficControl>(),
             CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.WEST to ArrayList<ITrafficControl>())
+            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+    )
 
     private val motorisedSensors = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ISensor>(),
             CardinalDirection.EAST to ArrayList<ISensor>(),
             CardinalDirection.SOUTH to ArrayList<ISensor>(),
-            CardinalDirection.WEST to ArrayList<ISensor>())
+            CardinalDirection.WEST to ArrayList<ISensor>()
+    )
 
     val vesselTracks = hashMapOf(
             CardinalDirection.WEST to VesselTrack(CardinalDirection.WEST, 0),
             CardinalDirection.INVALID to VesselTrack(CardinalDirection.INVALID, 1),
-            CardinalDirection.EAST to VesselTrack(CardinalDirection.EAST, 2))
+            CardinalDirection.EAST to VesselTrack(CardinalDirection.EAST, 2)
+    )
+
+    val vesselLights = hashMapOf(
+            CardinalDirection.WEST to BoatLight(CardinalDirection.WEST, 0),
+            CardinalDirection.EAST to BoatLight(CardinalDirection.EAST, 1)
+    )
 
     val vesselBarriers = VesselControlBarrier()
 
     val trainTracks = hashMapOf(
             CardinalDirection.WEST to TrainTrack(CardinalDirection.WEST, 0),
             CardinalDirection.INVALID to TrainTrack(CardinalDirection.INVALID, 1),
-            CardinalDirection.EAST to TrainTrack(CardinalDirection.EAST, 2))
+            CardinalDirection.EAST to TrainTrack(CardinalDirection.EAST, 2)
+    )
 
     val trainBarriers = TrainControlBarrier()
     val trainWarningLights = TrainWarningLight()
@@ -110,16 +120,21 @@ class ControlRegistryService {
     }
 
     private fun initControls() {
+        fun init(dir: CardinalDirection, control: ITrafficControl) = logger.info { "Initialised ${setMqttProperties(dir, control)}" }
+
         vesselTracks.forEach { (dir, track) ->
-            logger.info { "Initialised ${setMqttProperties(dir, track)}" }
+            init(dir, track)
         }
         trainTracks.forEach { (dir, track) ->
-            logger.info { "Initialised ${setMqttProperties(dir, track)}" }
+            init(dir, track)
         }
-        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, vesselBarriers)}" }
-        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, trainBarriers)}" }
-        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, trainWarningLights)}" }
-        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, vesselWarningLights)}" }
+        vesselLights.forEach { (dir, light) ->
+            init(dir, light)
+        }
+        init(CardinalDirection.INVALID, vesselBarriers)
+        init(CardinalDirection.INVALID, trainBarriers)
+        init(CardinalDirection.INVALID, trainWarningLights)
+        init(CardinalDirection.INVALID, vesselWarningLights)
     }
 
     private fun registerNorthMotorisedControls() {

@@ -37,7 +37,7 @@ class LightController {
     }
 
     suspend fun turnOnLights(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
-        controls.forEach { it.turnRed(client) }
+        controls.forEach { it.turnGreen(client) }
     }
 
     fun CoroutineScope.turnLightsYellow(controls: List<TrafficLight>) {
@@ -49,6 +49,6 @@ class LightController {
     }
 
     fun CoroutineScope.turnLightsGreen(controls: List<TrafficLight>) {
-        controls.forEach { it.turnRed(client) }
+        controls.forEach { it.turnGreen(client) }
     }
 }

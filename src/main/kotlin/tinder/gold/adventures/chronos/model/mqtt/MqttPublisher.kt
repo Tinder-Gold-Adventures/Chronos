@@ -23,10 +23,12 @@ class MqttPublisher(
                     props.RetainFlag)
             logger.info { "Published \"$payload\" to topic \"${topic.name}\"" }
         } catch (err: MqttPersistenceException) {
-            logger.error("Problem occurred when storing a message on topic ${topic.name}", err.cause)
+            logger.error("Problem occurred when storing a message on topic ${topic.name}")
+            err.printStackTrace()
         } // IllegalArgumentException should not happen since we manage QoS with an enum
         catch (err: MqttException) {
-            logger.error("Unknown error caused when publishing a message to topic ${topic.name}", err.cause)
+            logger.error("Unknown error caused when publishing a message to topic ${topic.name}")
+            err.printStackTrace()
         }
     }
 }

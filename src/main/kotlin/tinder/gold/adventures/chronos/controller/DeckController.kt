@@ -1,9 +1,7 @@
 package tinder.gold.adventures.chronos.controller
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,10 +11,7 @@ import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.GroupingService
 import tinder.gold.adventures.chronos.service.TrafficFilterService
-import java.util.*
 import javax.annotation.PostConstruct
-import kotlin.concurrent.fixedRateTimer
-import kotlin.concurrent.timerTask
 
 /**
  * The deck controller controls when the deck (bridge) will open or close
@@ -43,15 +38,30 @@ class DeckController {
     private lateinit var controlRegistryService: ControlRegistryService
 
     @PostConstruct
-    fun init() {
-        fixedRateTimer(initialDelay = 60000L, period = 60000L) {
-            if (vesselSensorListener.vesselCount > 0) {
-                vesselSensorListener.reset()
-                // TODO refactor using rendezvous channel feedback
-                activateVesselGroups()
-                Timer("DeactivateVesselGroupsTimer", false).schedule(timerTask {
-                    deactivateVesselGroups()
-                }, 30000L)
+    fun init() = runBlocking {
+        // launch a new coroutine so we don't block the spring initializer
+        GlobalScope.launch {
+            while (true) {
+                if (vesselSensorListener.vesselCount > 0) {
+
+                    vesselSensorListener.reset()
+                    val rendezvousChannel = Channel<Unit>(0)
+
+                    // control process
+                    launch(this.coroutineContext) {
+                        while (true) {
+                            delay(30000L)
+                            // todo check boat sensors, continue?
+                            break
+                        }
+                        deactivateVesselGroups()
+                        rendezvousChannel.offer(Unit)
+                    }
+
+                    activateVesselGroups()
+                    rendezvousChannel.receive()
+                }
+                delay(10000L)
             }
         }
     }

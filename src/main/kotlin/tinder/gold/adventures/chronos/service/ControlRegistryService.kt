@@ -35,17 +35,18 @@ class ControlRegistryService {
             CardinalDirection.WEST to ArrayList<ISensor>())
 
     val vesselTracks = hashMapOf(
-            CardinalDirection.WEST to VesselTrack(CardinalDirection.EAST),
-            CardinalDirection.EAST to VesselTrack(CardinalDirection.WEST))
+            CardinalDirection.WEST to VesselTrack(CardinalDirection.WEST, 0),
+            CardinalDirection.INVALID to VesselTrack(CardinalDirection.INVALID, 1),
+            CardinalDirection.EAST to VesselTrack(CardinalDirection.EAST, 2))
 
     val vesselBarriers = VesselControlBarrier()
 
     val trainTracks = hashMapOf(
-            CardinalDirection.WEST to TrainTrack(CardinalDirection.EAST),
-            CardinalDirection.EAST to TrainTrack(CardinalDirection.WEST))
+            CardinalDirection.WEST to TrainTrack(CardinalDirection.WEST, 0),
+            CardinalDirection.INVALID to TrainTrack(CardinalDirection.INVALID, 1),
+            CardinalDirection.EAST to TrainTrack(CardinalDirection.EAST, 2))
 
     val trainBarriers = TrainControlBarrier()
-
     val trainWarningLights = TrainWarningLight()
     val vesselWarningLights = VesselWarningLight()
 

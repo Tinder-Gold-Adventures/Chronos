@@ -18,15 +18,15 @@ abstract class TrafficLight(
     val stateFilters = arrayListOf<TrafficLightState>()
     private fun mayChangeState(state: TrafficLightState) = !stateFilters.contains(state)
 
-    fun turnGreen(client: MqttAsyncClient) {
+    open fun turnGreen(client: MqttAsyncClient) {
         setState(TrafficLightState.Green, client)
     }
 
-    fun turnYellow(client: MqttAsyncClient) {
+    open fun turnYellow(client: MqttAsyncClient) {
         setState(TrafficLightState.Yellow, client)
     }
 
-    fun turnRed(client: MqttAsyncClient) {
+    open fun turnRed(client: MqttAsyncClient) {
         setState(TrafficLightState.Red, client)
     }
 

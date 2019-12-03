@@ -5,6 +5,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.controller.TrackController
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrackSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
 
@@ -23,6 +24,12 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
 
     private var trainGroup: Int? = null
 
+    private fun getDirection() = when (trainGroup) {
+        1 -> MqttTopicBuilder.CardinalDirection.EAST
+        2 -> MqttTopicBuilder.CardinalDirection.WEST
+        else -> MqttTopicBuilder.CardinalDirection.INVALID
+    }
+
     override fun callback(topic: String, msg: MqttMessage) {
         if (msg.getPayloadString() != "1") return
 
@@ -32,13 +39,13 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
             trainGroup == null -> {
                 when (componentId) {
                     0, 2 -> {
-                        trackController.activateTrackGroups()
+                        trackController.activateTrackGroups(getDirection())
                         trainGroup = componentId
                     }
                 }
             }
             componentId == 1 -> {
-                trackController.deactivateTrackGroups()
+                trackController.deactivateTrackGroups(getDirection())
             }
             else -> {
                 trainGroup = null

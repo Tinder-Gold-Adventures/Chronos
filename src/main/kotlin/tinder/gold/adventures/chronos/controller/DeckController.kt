@@ -54,7 +54,7 @@ class DeckController {
                             logger.info { "Vessel deactivation loop iteration $iterations, vessel count ${vesselSensorListener.vesselCount}" }
                             // while boats are passing through delay the deactivation loop
                             delay(5000L)
-                            if(++iterations >= 5) {
+                            if (++iterations >= 5) {
                                 break // force-break the deactivation loop if 5 iterations have passed
                             }
                         }
@@ -91,10 +91,9 @@ class DeckController {
         // Open the deck
         controlRegistryService.vesselDeck.open(client)
         delay(10000L)
-        // Turn off the vessel lights
         // TODO light priorities
         controlRegistryService.vesselLights.forEach { (_, light) ->
-            light.turnYellow(client)
+            light.turnGreen(client)
         }
     }
 

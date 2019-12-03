@@ -10,10 +10,7 @@ import tinder.gold.adventures.chronos.model.traffic.barrier.VesselControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.core.ISensor
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 import tinder.gold.adventures.chronos.model.traffic.deck.VesselDeck
-import tinder.gold.adventures.chronos.model.traffic.light.BoatLight
-import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
-import tinder.gold.adventures.chronos.model.traffic.light.TrainWarningLight
-import tinder.gold.adventures.chronos.model.traffic.light.VesselWarningLight
+import tinder.gold.adventures.chronos.model.traffic.light.*
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrackSensor
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import tinder.gold.adventures.chronos.model.traffic.sensor.VesselSensor
@@ -58,6 +55,11 @@ class ControlRegistryService {
             CardinalDirection.WEST to TrackSensor(CardinalDirection.WEST, 0),
             CardinalDirection.INVALID to TrackSensor(CardinalDirection.INVALID, 1),
             CardinalDirection.EAST to TrackSensor(CardinalDirection.EAST, 2)
+    )
+
+    val trackLights = hashMapOf(
+            CardinalDirection.EAST to TrackLight(CardinalDirection.WEST, 0), // Eastern light
+            CardinalDirection.WEST to TrackLight(CardinalDirection.EAST, 1) // Western light
     )
 
     val trackBarriers = TrainControlBarrier()
@@ -132,6 +134,9 @@ class ControlRegistryService {
             init(dir, track)
         }
         vesselLights.forEach { (dir, light) ->
+            init(dir, light)
+        }
+        trackLights.forEach { (dir, light) ->
             init(dir, light)
         }
         init(CardinalDirection.INVALID, vesselBarriers)

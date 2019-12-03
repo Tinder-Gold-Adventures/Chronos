@@ -6,23 +6,23 @@ import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 
-class BoatLight(
+class TrackLight(
         override val directionTo: MqttTopicBuilder.CardinalDirection,
         override val componentId: Int
 ) : ITrafficControl {
 
-    override val laneType: MqttTopicBuilder.LaneType = MqttTopicBuilder.LaneType.VESSEL
-    override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.BOAT_LIGHT
+    override val laneType: MqttTopicBuilder.LaneType = MqttTopicBuilder.LaneType.TRACK
+    override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.TRACK_LIGHT
 
-    var boatlightState: BoatLightState = BoatLightState.Red
+    var trackLightState: TrackLightState = TrackLightState.Red
         private set
 
-    sealed class BoatLightState {
-        object Green : BoatLightState() {
+    sealed class TrackLightState {
+        object Green : TrackLightState() {
             override fun getPayload() = "2"
         }
 
-        object Red : BoatLightState() {
+        object Red : TrackLightState() {
             override fun getPayload() = "0"
         }
 
@@ -35,17 +35,17 @@ class BoatLight(
     }
 
     fun turnGreen(client: MqttAsyncClient) {
-        setState(BoatLightState.Green, client)
+        setState(TrackLightState.Green, client)
     }
 
     fun turnRed(client: MqttAsyncClient) {
-        setState(BoatLightState.Red, client)
+        setState(TrackLightState.Red, client)
     }
 
-    private fun setState(state: BoatLightState, client: MqttAsyncClient) {
-        if (boatlightState == state) return
-        boatlightState = state
-        with(boatlightState) {
+    private fun setState(state: TrackLightState, client: MqttAsyncClient) {
+        if (trackLightState == state) return
+        trackLightState = state
+        with(trackLightState) {
             publisher.sendState(client)
         }
     }

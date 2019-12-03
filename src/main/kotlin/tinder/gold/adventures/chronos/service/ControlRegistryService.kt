@@ -5,9 +5,15 @@ import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.LaneType
-import tinder.gold.adventures.chronos.model.traffic.control.*
-import tinder.gold.adventures.chronos.model.traffic.sensor.ISensor
+import tinder.gold.adventures.chronos.model.traffic.barrier.TrainControlBarrier
+import tinder.gold.adventures.chronos.model.traffic.barrier.VesselControlBarrier
+import tinder.gold.adventures.chronos.model.traffic.core.ISensor
+import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.deck.VesselDeck
+import tinder.gold.adventures.chronos.model.traffic.light.*
+import tinder.gold.adventures.chronos.model.traffic.sensor.TrackSensor
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
+import tinder.gold.adventures.chronos.model.traffic.sensor.VesselSensor
 import javax.annotation.PostConstruct
 
 @Service
@@ -19,45 +25,45 @@ class ControlRegistryService {
             CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
             CardinalDirection.EAST to ArrayList<ITrafficControl>(),
             CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.WEST to ArrayList<ITrafficControl>())
+            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+    )
 
     private val motorisedSensors = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ISensor>(),
             CardinalDirection.EAST to ArrayList<ISensor>(),
             CardinalDirection.SOUTH to ArrayList<ISensor>(),
-            CardinalDirection.WEST to ArrayList<ISensor>())
+            CardinalDirection.WEST to ArrayList<ISensor>()
+    )
 
-    val vesselTracks = hashMapOf(
-            CardinalDirection.WEST to VesselTrack(CardinalDirection.EAST),
-            CardinalDirection.EAST to VesselTrack(CardinalDirection.WEST))
+    val vesselSensors = hashMapOf(
+            CardinalDirection.WEST to VesselSensor(CardinalDirection.WEST, 0), // Sensor oost -> west
+            CardinalDirection.INVALID to VesselSensor(CardinalDirection.INVALID, 1), // Sensor onder brug
+            CardinalDirection.EAST to VesselSensor(CardinalDirection.EAST, 2), // Sensor west -> oost
+            CardinalDirection.INVALID to VesselSensor(CardinalDirection.INVALID, 3) // Brugdek
+    )
 
-    val vesselBarriers = listOf(
-            VesselControlBarrier(0), // West fiets/voetpad
-            VesselControlBarrier(1), // Autorijbaan Noord > Zuid
-            VesselControlBarrier(2), // Autorijbaan Zuid > Noord
-            VesselControlBarrier(3), // Oost fiets/voetpad
-            VesselControlBarrier(4), // West fiets/voetpad
-            VesselControlBarrier(5), // Autorijbaan Noord > Zuid
-            VesselControlBarrier(6), // Autorijbaan Zuid > Noord
-            VesselControlBarrier(7)) // Oost fiets/voetpad
+    val vesselLights = hashMapOf(
+            CardinalDirection.WEST to BoatLight(CardinalDirection.WEST, 0), // Eastern light
+            CardinalDirection.EAST to BoatLight(CardinalDirection.EAST, 1) // Western light
+    )
 
-    val trainTracks = hashMapOf(
-            CardinalDirection.WEST to TrainTrack(CardinalDirection.EAST),
-            CardinalDirection.EAST to TrainTrack(CardinalDirection.WEST))
-
-    val trainBarriers = listOf(
-            TrainControlBarrier(0), // West fiets/voetpad
-            TrainControlBarrier(1), // Autorijbaan Noord > Zuid
-            TrainControlBarrier(2), // Oost fietspad
-            TrainControlBarrier(3), // Oost voetpad
-            TrainControlBarrier(4), // West voetpad
-            TrainControlBarrier(5), // West fietspad
-            TrainControlBarrier(6), // Autorijbaan Zuid > West
-            TrainControlBarrier(7), // Autorijbaan Zuid > Noord/Oost
-            TrainControlBarrier(8)) // Oost fiets/voetpad
-
-    val trainWarningLights = TrainWarningLight()
+    val vesselBarriers = VesselControlBarrier()
     val vesselWarningLights = VesselWarningLight()
+    val vesselDeck = VesselDeck()
+
+    val trackSensors = hashMapOf(
+            CardinalDirection.WEST to TrackSensor(CardinalDirection.WEST, 0),
+            CardinalDirection.INVALID to TrackSensor(CardinalDirection.INVALID, 1),
+            CardinalDirection.EAST to TrackSensor(CardinalDirection.EAST, 2)
+    )
+
+    val trackLights = hashMapOf(
+            CardinalDirection.EAST to TrackLight(CardinalDirection.WEST, 0), // Eastern light
+            CardinalDirection.WEST to TrackLight(CardinalDirection.EAST, 1) // Western light
+    )
+
+    val trackBarriers = TrainControlBarrier()
+    val trackWarningLights = TrainWarningLight()
 
     fun registerTrafficControl(laneType: LaneType, direction: CardinalDirection, control: ITrafficControl) {
         when (laneType) {
@@ -65,8 +71,8 @@ class ControlRegistryService {
                 if (control is ISensor) registerTrafficControl(motorisedSensors, direction, control)
                 else registerTrafficControl(motorised, direction, control)
             }
-            LaneType.FOOT -> TODO()
-            LaneType.CYCLE -> TODO()
+            LaneType.FOOT -> TODO("Foot lanes not yet implemented")
+            LaneType.CYCLE -> TODO("Cycle lanes not yet implemented")
             LaneType.VESSEL -> {
                 logger.warn { "No vessel controls have to be registered" }
             }
@@ -119,71 +125,83 @@ class ControlRegistryService {
     }
 
     private fun initControls() {
-        vesselTracks.forEach { (dir, track) ->
-            logger.info { "Initialised ${setMqttProperties(dir, track)}" }
+        fun init(dir: CardinalDirection, control: ITrafficControl) = logger.info { "Initialised ${setMqttProperties(dir, control)}" }
+
+        vesselSensors.forEach { (dir, track) ->
+            init(dir, track)
         }
-        trainTracks.forEach { (dir, track) ->
-            logger.info { "Initialised ${setMqttProperties(dir, track)}" }
+        trackSensors.forEach { (dir, track) ->
+            init(dir, track)
         }
-        vesselBarriers.map { it as ITrafficControl }
-                .union(trainBarriers)
-                .forEach {
-                    logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, it)}" }
-                }
-        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, trainWarningLights)}" }
-        logger.info { "Initialised ${setMqttProperties(CardinalDirection.INVALID, vesselWarningLights)}" }
+        vesselLights.forEach { (dir, light) ->
+            init(dir, light)
+        }
+        trackLights.forEach { (dir, light) ->
+            init(dir, light)
+        }
+        init(CardinalDirection.INVALID, vesselBarriers)
+        init(CardinalDirection.INVALID, trackBarriers)
+        init(CardinalDirection.INVALID, trackWarningLights)
+        init(CardinalDirection.INVALID, vesselWarningLights)
+        init(CardinalDirection.INVALID, vesselDeck)
     }
 
     private fun registerNorthMotorisedControls() {
-        // Motorised traffic lights
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.WEST))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH, 1))
+        //GROUP 0
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.EAST))
-        // Motorised traffic sensors
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.FAR))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE, 1))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR, 1))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR))
+
+        //GROUP 1
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE, componentIdOffset = 2))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR, componentIdOffset = 2))
+
+        //GROUP 2
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.WEST))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.FAR))
     }
 
     private fun registerEastMotorisedControls() {
-        // Motorised traffic lights
+        //GROUP 3
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, MotorisedTrafficLight(CardinalDirection.NORTH))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, MotorisedTrafficLight(CardinalDirection.SOUTH))
-        // Motorised traffic sensors
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR))
+
+        //GROUP 4
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, MotorisedTrafficLight(CardinalDirection.SOUTH))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.EAST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR))
     }
 
     private fun registerSouthMotorisedControls() {
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.WEST))
-        // ?? Both to north and east (from the same lane)
+        //GROUP 5
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.NORTH))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.EAST))
-
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.FAR))
-        // ?? Both to north and east (from the same lane)
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE, componentIdOffset = 2))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR, componentIdOffset = 2))
+
+        //GROUP 6
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.WEST))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.FAR))
     }
 
     private fun registerWestMotorisedControls() {
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, MotorisedTrafficLight(CardinalDirection.NORTH))
+        //GROUP 7
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, MotorisedTrafficLight(CardinalDirection.SOUTH))
-
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR))
+
+        //GROUP 8
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, MotorisedTrafficLight(CardinalDirection.NORTH))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE))
+        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR))
     }
 }

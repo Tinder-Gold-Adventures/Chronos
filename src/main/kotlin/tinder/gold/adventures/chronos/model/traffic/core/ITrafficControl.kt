@@ -1,4 +1,4 @@
-package tinder.gold.adventures.chronos.model.traffic.control
+package tinder.gold.adventures.chronos.model.traffic.core
 
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
 import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
@@ -16,7 +16,6 @@ interface ITrafficControl {
     val directionTo: CardinalDirection
     val laneType: LaneType
     val componentType: ComponentType
-    val overrideSubgroup: Int?
 
     var publisher : MqttPublisher
     var subscriber : MqttSubscriber

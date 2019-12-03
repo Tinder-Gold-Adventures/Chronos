@@ -1,9 +1,8 @@
 package tinder.gold.adventures.chronos.model.mqtt.builder
 
-import tinder.gold.adventures.chronos.ext.to
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection.*
-import tinder.gold.adventures.chronos.model.traffic.control.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 
 open class MqttTopicBuilderSubject(
         val LANE_TYPE: MqttTopicBuilder.LaneType,
@@ -46,11 +45,7 @@ open class MqttTopicBuilderSubject(
             }
             // vessel and track share the same groups
             MqttTopicBuilder.LaneType.VESSEL,
-            MqttTopicBuilder.LaneType.TRACK -> return when (groupStr) {
-                WEST to EAST -> 0
-                EAST to WEST -> 0
-                else -> -1
-            }
+            MqttTopicBuilder.LaneType.TRACK -> return 0
             else -> return -1
         }
     }

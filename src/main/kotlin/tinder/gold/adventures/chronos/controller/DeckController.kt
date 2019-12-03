@@ -44,7 +44,7 @@ class DeckController {
             while (true) {
                 // TODO when to trigger?
                 if (vesselSensorListener.vesselCount > 0) {
-                    val rendezvousChannel = Channel<Unit>(0)
+                    val rendezvousChannel = Channel<Unit>(Channel.RENDEZVOUS)
 
                     // control process
                     launch(this.coroutineContext) {

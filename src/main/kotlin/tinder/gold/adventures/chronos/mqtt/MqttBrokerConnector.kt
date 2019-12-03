@@ -42,7 +42,7 @@ class MqttBrokerConnector : CoroutineScope by CoroutineScope(Dispatchers.IO) {
             logger.info { "Attempting to connect to MQTT Broker" }
 
             // Waiting channel
-            val rendezvousChannel = Channel<Unit>(0)
+            val rendezvousChannel = Channel<Unit>(Channel.RENDEZVOUS)
 
             token = client.connect(options, null, object : IMqttActionListener {
                 override fun onSuccess(token: IMqttToken) {

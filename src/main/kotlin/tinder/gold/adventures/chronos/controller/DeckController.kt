@@ -51,6 +51,7 @@ class DeckController {
                         delay(5000L) // initial wait time for boats to start moving
                         var iterations = 0
                         while (vesselSensorListener.passingThrough || vesselSensorListener.vesselCount > 0) {
+                            logger.info { "Vessel deactivation loop iteration $iterations, vessel count ${vesselSensorListener.vesselCount}" }
                             // while boats are passing through delay the deactivation loop
                             delay(5000L)
                             if(++iterations >= 5) {
@@ -91,6 +92,7 @@ class DeckController {
         controlRegistryService.vesselDeck.open(client)
         delay(10000L)
         // Turn off the vessel lights
+        // TODO light priorities
         controlRegistryService.vesselLights.forEach { (_, light) ->
             light.turnYellow(client)
         }

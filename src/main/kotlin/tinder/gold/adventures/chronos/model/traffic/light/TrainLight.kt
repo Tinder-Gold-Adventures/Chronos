@@ -6,20 +6,20 @@ import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 
-class TrackLight(
+class TrainLight(
         override val directionTo: MqttTopicBuilder.CardinalDirection,
         override val componentId: Int
 ) : ITrafficControl {
 
     override val laneType: MqttTopicBuilder.LaneType = MqttTopicBuilder.LaneType.TRACK
-    override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.TRACK_LIGHT
+    override val componentType: MqttTopicBuilder.ComponentType = MqttTopicBuilder.ComponentType.TRAIN_LIGHT
 
     var trackLightState: TrackLightState = TrackLightState.Red
         private set
 
     sealed class TrackLightState {
         object Green : TrackLightState() {
-            override fun getPayload() = "2"
+            override fun getPayload() = "1"
         }
 
         object Red : TrackLightState() {

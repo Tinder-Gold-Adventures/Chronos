@@ -19,7 +19,7 @@ class BoatLight(
 
     sealed class BoatLightState {
         object Green : BoatLightState() {
-            override fun getPayload() = "2"
+            override fun getPayload() = "1"
         }
 
         object Red : BoatLightState() {

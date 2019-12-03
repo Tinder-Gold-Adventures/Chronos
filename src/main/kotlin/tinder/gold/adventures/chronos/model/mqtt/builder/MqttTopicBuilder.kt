@@ -30,7 +30,7 @@ object MqttTopicBuilder {
         TRAFFIC_LIGHT,
         WARNING_LIGHT,
         BOAT_LIGHT,
-        TRACK_LIGHT,
+        TRAIN_LIGHT,
         SENSOR,
         BARRIER,
         DECK

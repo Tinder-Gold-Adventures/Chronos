@@ -58,8 +58,8 @@ class ControlRegistryService {
     )
 
     val trackLights = hashMapOf(
-            CardinalDirection.EAST to TrackLight(CardinalDirection.WEST, 0), // Eastern light
-            CardinalDirection.WEST to TrackLight(CardinalDirection.EAST, 1) // Western light
+            CardinalDirection.EAST to TrainLight(CardinalDirection.WEST, 0), // Eastern light
+            CardinalDirection.WEST to TrainLight(CardinalDirection.EAST, 1) // Western light
     )
 
     val trackBarriers = TrainControlBarrier()

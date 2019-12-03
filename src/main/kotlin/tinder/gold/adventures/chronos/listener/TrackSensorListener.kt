@@ -25,7 +25,7 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
     private var trainGroup: Int? = null
 
     private fun getDirection() = when (trainGroup) {
-        1 -> MqttTopicBuilder.CardinalDirection.EAST
+        0 -> MqttTopicBuilder.CardinalDirection.EAST
         2 -> MqttTopicBuilder.CardinalDirection.WEST
         else -> MqttTopicBuilder.CardinalDirection.INVALID
     }

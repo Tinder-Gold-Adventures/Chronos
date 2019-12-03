@@ -48,9 +48,14 @@ class DeckController {
 
                     // control process
                     launch(this.coroutineContext) {
-                        while (vesselSensorListener.vesselCount > 0) {
+                        delay(5000L) // initial wait time for boats to start moving
+                        var iterations = 0
+                        while (vesselSensorListener.passingThrough || vesselSensorListener.vesselCount > 0) {
+                            // while boats are passing through delay the deactivation loop
                             delay(5000L)
-                            break
+                            if(++iterations >= 5) {
+                                break // force-break the deactivation loop if 5 iterations have passed
+                            }
                         }
                         deactivateVesselGroups()
                         rendezvousChannel.offer(Unit)

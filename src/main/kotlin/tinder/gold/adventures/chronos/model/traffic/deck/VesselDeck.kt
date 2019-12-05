@@ -16,11 +16,11 @@ class VesselDeck(
     sealed class DeckState {
 
         object Open : DeckState() {
-            override fun getPayload() = "0"
+            override fun getPayload() = "1"
         }
 
         object Closed : DeckState() {
-            override fun getPayload() = "1"
+            override fun getPayload() = "0"
         }
 
         abstract fun getPayload(): String

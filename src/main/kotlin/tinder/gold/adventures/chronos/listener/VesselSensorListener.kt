@@ -16,6 +16,7 @@ class VesselSensorListener : MqttListener<VesselSensor>() {
     @Autowired
     override lateinit var client: MqttAsyncClient
 
+    // TODO little broken
     final var vesselCount = 0
         private set
 
@@ -25,13 +26,19 @@ class VesselSensorListener : MqttListener<VesselSensor>() {
     final var passingThrough = false
         private set
 
+    private var lastMovingLane: Int = -1
+
     override fun callback(topic: String, msg: MqttMessage) {
         val componentId = topic.split("/").last().toInt()
         val payload = msg.getPayloadString()
 
         if (componentId == 0 || componentId == 2) { // East or west sensor
-            if (payload == "1") vesselCount++
-            else vesselCount--
+            if (payload == "1" && lastMovingLane != componentId) {
+                vesselCount++
+            } else if (payload == "0") {
+                vesselCount--
+                lastMovingLane = componentId
+            }
         } else if (componentId == 1) { // Under bridge
             passingThrough = payload == "1"
         } else if (componentId == 3) { // Deck sensor

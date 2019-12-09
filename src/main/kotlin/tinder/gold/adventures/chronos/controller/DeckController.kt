@@ -48,7 +48,7 @@ class DeckController {
 
                     // control process
                     launch(this.coroutineContext) {
-                        delay(5000L) // initial wait time for boats to start moving
+                        delay(15000L) // initial wait time for boats to start moving
                         var iterations = 0
                         while (vesselSensorListener.passingThrough || vesselSensorListener.vesselCount > 0) {
                             logger.info { "Vessel deactivation loop iteration $iterations, vessel count ${vesselSensorListener.vesselCount}" }

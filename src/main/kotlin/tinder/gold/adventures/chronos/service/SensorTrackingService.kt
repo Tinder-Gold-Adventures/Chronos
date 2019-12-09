@@ -13,45 +13,40 @@ class SensorTrackingService {
 
     private val logger = KotlinLogging.logger { }
 
-    private val sensorMapCache = hashMapOf<String, SensorCache>()
-    private val sensorMap = hashMapOf<String, Int>()
+    private val map = hashMapOf<String, SensorCache>()
 
     fun putSensorValue(topic: String, value: Int) {
-        sensorMap[topic] = value
-        updateCache(topic, value)
-    }
+        if (!map.containsKey(topic)) {
+            throw RuntimeException("Map does not contain $topic")
+        }
 
-    fun resetCache(topic: String) {
-        sensorMapCache[topic] = SensorCache(0, 0)
-    }
-
-    fun isConnected() = sensorMapCache.any()
-
-    fun getActiveCount(topic: String) = if (!sensorMapCache.containsKey(topic)) 0
-    else sensorMapCache[topic]!!.activeCount
-
-    fun getInactiveCount(topic: String) = if (!sensorMapCache.containsKey(topic)) 0
-    else sensorMapCache[topic]!!.inactiveCount
-
-    private fun updateCache(topic: String, value: Int) {
-        if (!sensorMapCache.containsKey(topic)) {
-            val cacheValue = if (value == 1) SensorCache(1, 0)
-            else SensorCache(0, 1)
-            sensorMapCache[topic] = cacheValue
-        } else {
-            val oldCache = sensorMapCache[topic]!!
-            when (value) {
-                0 -> sensorMapCache[topic] = oldCache.copy(inactiveCount = oldCache.inactiveCount + 1)
-                1 -> sensorMapCache[topic] = oldCache.copy(activeCount = oldCache.activeCount + 1)
-            }
+        val oldCache = map[topic]!!
+        when (value) {
+            0 -> map[topic] = oldCache.copy(inactiveCount = oldCache.inactiveCount + 1)
+            1 -> map[topic] = oldCache.copy(activeCount = oldCache.activeCount + 1)
         }
     }
 
-    fun getSensorValue(topic: String): Int = if (sensorMap.containsKey(topic)) sensorMap[topic]!! else 0
+    // TODO
+//    fun resetCache(topic: String) {
+//        map[topic] = SensorCache(0, 0)
+//    }
+
+    fun isConnected() = map.any()
+
+    fun getRealCount(topic: String) = if (!map.containsKey(topic)) 0
+    else map[topic]!!.let { it.activeCount - it.inactiveCount }
+
+    // TODO
+//    fun getActiveCount(topic: String) = if (!map.containsKey(topic)) 0
+//    else map[topic]!!.activeCount
+//
+//    fun getInactiveCount(topic: String) = if (!map.containsKey(topic)) 0
+//    else map[topic]!!.inactiveCount
 
     fun register(sensor: TrafficSensor) {
         val topic = sensor.publisher.topic.name
-        if (sensorMap.putIfAbsent(topic, 0) == null) {
+        if (map.putIfAbsent(topic, SensorCache(0, 0)) == null) {
             logger.info { "Registered $topic" }
         }
     }

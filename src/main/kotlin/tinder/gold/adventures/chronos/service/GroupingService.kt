@@ -41,38 +41,6 @@ class GroupingService {
         fun getGroup(grouping: Grouping) = Groups[grouping]!!
     }
 
-    object Priority {
-        val Groups = hashMapOf(
-                Pair(Grouping.GROUP_ONE, 0),
-                Pair(Grouping.GROUP_TWO, 0),
-                Pair(Grouping.GROUP_THREE, 0)
-        )
-
-        fun getPriority(grouping: Grouping) = Groups[grouping]!!
-
-        fun updatePriorities(grouping: Grouping) {
-            Groups.forEach { (group, _) ->
-                if (group != grouping) {
-                    Groups[group] = getPriority(group) + 1
-                } else {
-                    Groups[group] = getPriority(grouping) - 1
-                }
-            }
-        }
-
-        fun getHighestPriority(): Int {
-            val groupings = Grouping::class.sealedSubclasses
-            var highestPriority = 0
-            groupings.forEach {
-                val grouping = it.objectInstance!!
-                val priority = getPriority(grouping)
-                if (priority > highestPriority)
-                    highestPriority = priority
-            }
-            return highestPriority
-        }
-    }
-
     @Autowired
     private lateinit var controlRegistryService: ControlRegistryService
 
@@ -81,38 +49,35 @@ class GroupingService {
 
     @PostConstruct
     fun init() {
-        initGroups()
-    }
-
-    fun getGroupScore(grouping: Grouping) =
-            Sensors.getGroup(grouping).sumBy {
-                sensorTrackingService.getActiveCount(it.subscriber.topic.name)
-            }
-
-    fun getHighestScoringGroup(): Grouping? {
-        var score = 0
-        var highestScoring: Grouping? = null
-        val groupings = Grouping::class.sealedSubclasses
-        val highestPriority = Priority.getHighestPriority()
-        groupings.filter { Priority.getPriority(it.objectInstance!!) == highestPriority }
-                .forEach {
-                    val grouping = it.objectInstance!!
-                    val groupingScore = getGroupScore(grouping)
-
-                    if (groupingScore > score || highestScoring == null) {
-                        score = groupingScore
-                        highestScoring = grouping
-                    }
-                }
-        return highestScoring
-    }
-
-    private fun initGroups() {
         initControls()
         initSensors()
         initTrainControls()
         initVesselControls()
     }
+
+    // TODO
+//    fun getGroupScore(grouping: Grouping) =
+//            Sensors.getGroup(grouping).sumBy {
+//                sensorTrackingService.getActiveCount(it.subscriber.topic.name)
+//            }
+
+//    fun getHighestScoringGroup(): Grouping? {
+//        var score = 0
+//        var highestScoring: Grouping? = null
+//        val groupings = Grouping::class.sealedSubclasses
+//        val highestPriority = Priority.getHighestPriority()
+//        groupings.filter { Priority.getPriority(it.objectInstance!!) == highestPriority }
+//                .forEach {
+//                    val grouping = it.objectInstance!!
+//                    val groupingScore = getGroupScore(grouping)
+//
+//                    if (groupingScore > score || highestScoring == null) {
+//                        score = groupingScore
+//                        highestScoring = grouping
+//                    }
+//                }
+//        return highestScoring
+//    }
 
     private fun initTrainControls() {
         controlRegistryService.getMotorisedControls(CardinalDirection.SOUTH)

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.controller.LightController
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
-import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import javax.annotation.PostConstruct
 
 @Service
@@ -26,6 +25,14 @@ class TrafficControlService {
     @Autowired
     private lateinit var lightController: LightController
 
+    @Autowired
+    private lateinit var scoringService: ScoringService
+
+    private var activeLights = arrayListOf<TrafficLight>()
+    fun removeActiveLight(light: TrafficLight) {
+        activeLights.remove(light)
+    }
+
     @PostConstruct
     fun init() = runBlocking {
         GlobalScope.launch {
@@ -38,49 +45,44 @@ class TrafficControlService {
 
     private suspend fun updateLights(): Long {
         logger.info { "Lights timer..." }
-        if (!sensorTrackingService.isConnected()) {
-            logger.info { "Not connected yet, retrying in 8 sec..." }
-            return 8000L
-        }
 
-        val highestScoring = groupingService.getHighestScoringGroup()
-        if (highestScoring != groupingService.activeGrouping) {
-            updateGroups(highestScoring!!)
+        logger.info { "Updating priorities" }
+        scoringService.updateScores()
+
+        val lights = scoringService.getHighScoringLights()
+        if (lights.any()) {
+            updateLights(lights)
+        } else {
+            logger.info { "NO LIGHTS!" }
         }
 
         // TODO proper propagation of events in the simulator e.g. if activated lanes are empty the new loop can already begin
         return 8000L
     }
 
-    suspend fun updateGroups(newGrouping: GroupingService.Grouping) {
-        logger.info { "Updating active group to: $newGrouping" }
+    suspend fun updateLights(lights: ArrayList<TrafficLight>) {
+        logger.info { "Updating active group" }
 
-        if (groupingService.activeGrouping != null) {
-            logger.info { "Disabling previous group..." }
-
-            val lights = GroupingService.Controls.getGroup(groupingService.activeGrouping!!)
-                    .filterIsInstance<TrafficLight>()
-
-            lightController.turnOffLightsDelayed(lights)
-            delay(3000L)
+        if (activeLights.any()) {
+            disableActiveLights()
         }
 
-        logger.info { "Enabling new group... $newGrouping" }
-
-        val lights = GroupingService.Controls.getGroup(newGrouping).filterIsInstance<TrafficLight>()
+        logger.info { "Enabling new group" }
         lightController.turnOnLights(lights)
-        groupingService.activeGrouping = newGrouping
-
-        logger.info { "Updating priorities" }
-        resetScore(newGrouping)
-        GroupingService.Priority.updatePriorities(newGrouping)
+        activeLights = lights
     }
 
-    fun resetScore(grouping: GroupingService.Grouping) {
-        GroupingService.Sensors.getGroup(grouping)
-                .filterIsInstance<TrafficSensor>()
-                .forEach {
-                    sensorTrackingService.resetCache(it.subscriber.topic.name)
-                }
+    private suspend fun disableActiveLights() {
+        logger.info { "Disabling previous group..." }
+        lightController.turnOffLightsDelayed(activeLights)
+        delay(3000L)
     }
+
+//    fun resetScore(grouping: GroupingService.Grouping) {
+//        GroupingService.Sensors.getGroup(grouping)
+//                .filterIsInstance<TrafficSensor>()
+//                .forEach {
+//                    sensorTrackingService.resetCache(it.subscriber.topic.name)
+//                }
+//    }
 }

@@ -39,8 +39,8 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
             trainGroup == null -> {
                 when (componentId) {
                     0, 2 -> {
-                        trackController.activateTrackGroups(getDirection())
                         trainGroup = componentId
+                        trackController.activateTrackGroups(getDirection())
                     }
                 }
             }

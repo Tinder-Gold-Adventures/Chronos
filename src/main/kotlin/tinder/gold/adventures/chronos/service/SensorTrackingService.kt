@@ -1,10 +1,9 @@
 package tinder.gold.adventures.chronos.service
 
 import mu.KotlinLogging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.job.SensorCache
-import javax.annotation.PostConstruct
+import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 
 /**
  * This service keeps track of sensor values
@@ -14,17 +13,8 @@ class SensorTrackingService {
 
     private val logger = KotlinLogging.logger { }
 
-    @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
-
     private val sensorMapCache = hashMapOf<String, SensorCache>()
     private val sensorMap = hashMapOf<String, Int>()
-
-    @PostConstruct
-    fun init() {
-        logger.info { "Initializing" }
-        registerControls()
-    }
 
     fun putSensorValue(topic: String, value: Int) {
         sensorMap[topic] = value
@@ -59,16 +49,10 @@ class SensorTrackingService {
 
     fun getSensorValue(topic: String): Int = if (sensorMap.containsKey(topic)) sensorMap[topic]!! else 0
 
-    private fun registerControls() {
-        controlRegistryService.getMotorisedSensors()
-                .forEach { controls ->
-                    controls.value.forEach { sensor ->
-                        val subject = sensor.getMqttTopicBuilderSubject(controls.key)
-                        val mqttTopic = subject.getMqttTopic(sensor)
-                        if (sensorMap.putIfAbsent(mqttTopic, 0) == null) {
-                            logger.info { "Registered $mqttTopic" }
-                        }
-                    }
-                }
+    fun register(sensor: TrafficSensor) {
+        val topic = sensor.publisher.topic.name
+        if (sensorMap.putIfAbsent(topic, 0) == null) {
+            logger.info { "Registered $topic" }
+        }
     }
 }

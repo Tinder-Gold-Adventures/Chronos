@@ -26,6 +26,9 @@ class ControlRegistryService {
     @Autowired
     private lateinit var trafficLightTrackingService: TrafficLightTrackingService
 
+    @Autowired
+    private lateinit var sensorTrackingService: SensorTrackingService
+
     private val motorised = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
             CardinalDirection.EAST to ArrayList<ITrafficControl>(),
@@ -141,6 +144,8 @@ class ControlRegistryService {
         }
         if (control is TrafficLight) {
             trafficLightTrackingService.register(control)
+        } else if (control is TrafficSensor) {
+            sensorTrackingService.register(control)
         }
         return topic
     }

@@ -1,6 +1,7 @@
 package tinder.gold.adventures.chronos.service
 
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
@@ -9,6 +10,7 @@ import tinder.gold.adventures.chronos.model.traffic.barrier.TrainControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.barrier.VesselControlBarrier
 import tinder.gold.adventures.chronos.model.traffic.core.ISensor
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.deck.VesselDeck
 import tinder.gold.adventures.chronos.model.traffic.light.*
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrackSensor
@@ -20,6 +22,9 @@ import javax.annotation.PostConstruct
 class ControlRegistryService {
 
     private val logger = KotlinLogging.logger { }
+
+    @Autowired
+    private lateinit var trafficLightTrackingService: TrafficLightTrackingService
 
     private val motorised = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
@@ -134,6 +139,9 @@ class ControlRegistryService {
             publisher = mqttTopic.publisher
             subscriber = mqttTopic.subscriber
         }
+        if (control is TrafficLight) {
+            trafficLightTrackingService.register(control)
+        }
         return topic
     }
 
@@ -191,7 +199,6 @@ class ControlRegistryService {
 
         //GROUP 1
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, MotorisedTrafficLight(CardinalDirection.SOUTH))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.FAR))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE, componentIdOffset = 2))
@@ -218,7 +225,6 @@ class ControlRegistryService {
     private fun registerSouthMotorisedControls() {
         //GROUP 5
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.NORTH))
-        registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, MotorisedTrafficLight(CardinalDirection.EAST))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE, componentIdOffset = 2))

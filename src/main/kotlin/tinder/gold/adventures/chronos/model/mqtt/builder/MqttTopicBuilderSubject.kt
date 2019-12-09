@@ -20,7 +20,18 @@ open class MqttTopicBuilderSubject(
         val otherDir = control.directionTo
         val groupStr = CARDINAL_DIRECTION to otherDir
         when (LANE_TYPE) {
-            MqttTopicBuilder.LaneType.FOOT -> TODO()
+            MqttTopicBuilder.LaneType.FOOT ->
+                return when (groupStr) {
+                    NORTH to EAST -> 0 // Oost <-> tussenstuk 0
+                    NORTH to WEST -> 1 // West <-> tussenstuk 1
+                    EAST to NORTH -> 2 // Noord <-> Zuid 2
+                    SOUTH to EAST -> 3 // Oost <-> Oostelijk tussenstuk 3
+                    SOUTH to INVALID -> 4 // Oostelijk tussenstuk <-> Westelijk tussenstuk 4
+                    SOUTH to WEST -> 5 // West <-> Westelijk tussenstuk 5
+                    WEST to NORTH -> 6 // Norod <-> Zuid 6
+                    else -> -1
+                }
+
             MqttTopicBuilder.LaneType.CYCLE -> if (control is CycleTrafficLight) {
                 return when (groupStr) {
                     NORTH to WEST -> 0 // Oost>West

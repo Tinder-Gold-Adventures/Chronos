@@ -49,6 +49,20 @@ class ControlRegistryService {
             CardinalDirection.WEST to ArrayList<ISensor>()
     )
 
+    private val foot = hashMapOf(
+            CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
+            CardinalDirection.EAST to ArrayList<ITrafficControl>(),
+            CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
+            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+    )
+
+    private val footSensors = hashMapOf(
+            CardinalDirection.NORTH to ArrayList<ISensor>(),
+            CardinalDirection.EAST to ArrayList<ISensor>(),
+            CardinalDirection.SOUTH to ArrayList<ISensor>(),
+            CardinalDirection.WEST to ArrayList<ISensor>()
+    )
+
     val vesselSensors = hashMapOf(
             CardinalDirection.WEST to VesselSensor(CardinalDirection.WEST, 0), // Sensor oost -> west
             CardinalDirection.INVALID to VesselSensor(CardinalDirection.INVALID, 1), // Sensor onder brug
@@ -85,7 +99,10 @@ class ControlRegistryService {
                 if (control is ISensor) registerTrafficControl(motorisedSensors, direction, control)
                 else registerTrafficControl(motorised, direction, control)
             }
-            LaneType.FOOT -> TODO("Foot lanes not yet implemented")
+            LaneType.FOOT -> {
+                if (control is ISensor) registerTrafficControl(footSensors, direction, control)
+                else registerTrafficControl(foot, direction, control)
+            }
             LaneType.CYCLE -> {
                 if (control is ISensor) registerTrafficControl(cycleSensors, direction, control)
                 else registerTrafficControl(cycle, direction, control)
@@ -139,6 +156,7 @@ class ControlRegistryService {
         registerWestMotorisedControls()
 
         registerCycleControls()
+        registerFootControls()
 
         initControls()
     }
@@ -246,5 +264,42 @@ class ControlRegistryService {
         registerTrafficControl(LaneType.CYCLE, CardinalDirection.WEST, CycleTrafficLight(CardinalDirection.SOUTH))
         registerTrafficControl(LaneType.CYCLE, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR, LaneType.CYCLE))
         registerTrafficControl(LaneType.CYCLE, CardinalDirection.WEST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE, LaneType.CYCLE))
+    }
+
+    private fun registerFootControls() {
+        // 0
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.NORTH, FootTrafficLight(CardinalDirection.EAST))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop oosten
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop tussenstuk
+
+        // 1
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.NORTH, FootTrafficLight(CardinalDirection.WEST))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop westen
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop tussenstuk
+
+        // 2
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.EAST, FootTrafficLight(CardinalDirection.NORTH))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.EAST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop noorden
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.EAST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop tussenstuk
+
+        // 3
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, FootTrafficLight(CardinalDirection.EAST))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop oosten
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop oostelijk tussenstuk
+
+        // 4
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, FootTrafficLight(CardinalDirection.INVALID))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.INVALID, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop oostelijk tussenstuk
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.INVALID, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop westelijk tussenstuk
+
+        // 5
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, FootTrafficLight(CardinalDirection.WEST))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop westen
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop westelijke tussenstuk
+
+        // 6
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.WEST, FootTrafficLight(CardinalDirection.NORTH))
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE, LaneType.FOOT)) // Knop noorden
+        registerTrafficControl(LaneType.FOOT, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR, LaneType.FOOT)) // Knop zuiden
     }
 }

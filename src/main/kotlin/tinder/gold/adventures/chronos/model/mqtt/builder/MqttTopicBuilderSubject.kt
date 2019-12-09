@@ -3,6 +3,8 @@ package tinder.gold.adventures.chronos.model.mqtt.builder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection.*
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.model.traffic.light.CycleTrafficLight
+import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 
 open class MqttTopicBuilderSubject(
         val LANE_TYPE: MqttTopicBuilder.LaneType,
@@ -19,13 +21,32 @@ open class MqttTopicBuilderSubject(
         val groupStr = CARDINAL_DIRECTION to otherDir
         when (LANE_TYPE) {
             MqttTopicBuilder.LaneType.FOOT -> TODO()
-            MqttTopicBuilder.LaneType.CYCLE -> return when (groupStr) {
-                NORTH to WEST -> 0 // Oost>West
-                EAST to NORTH -> 1 // Zuid>Noord
-                SOUTH to EAST -> 2 // Noorden spoor West>Oost
-                SOUTH to WEST -> 3 // Zuiden spoor Oost<->West
-                WEST to SOUTH -> 4 // Noord<->Zuid
-                else -> -1
+            MqttTopicBuilder.LaneType.CYCLE -> if (control is CycleTrafficLight) {
+                return when (groupStr) {
+                    NORTH to WEST -> 0 // Oost>West
+                    EAST to NORTH -> 1 // Zuid>Noord
+                    SOUTH to EAST -> 2 // Noorden spoor West>Oost
+                    SOUTH to WEST -> 3 // Zuiden spoor Oost<->West
+                    WEST to SOUTH -> 4 // Noord<->Zuid
+                    else -> -1
+                }
+            } else {
+                return when (CARDINAL_DIRECTION) {
+                    NORTH -> 0
+                    EAST -> 1
+                    SOUTH -> when (groupStr) {
+                        SOUTH to EAST -> {
+                            // Fix duplicate direction sensors for south groups
+                            val sensor = control as TrafficSensor
+                            if (sensor.location == TrafficSensor.Location.CLOSE) 2
+                            else 3
+                        }
+                        SOUTH to WEST -> 3
+                        else -> -1
+                    }
+                    WEST -> 4
+                    else -> -1
+                }
             }
             MqttTopicBuilder.LaneType.MOTORISED -> return when (groupStr) {
                 NORTH to EAST -> 0

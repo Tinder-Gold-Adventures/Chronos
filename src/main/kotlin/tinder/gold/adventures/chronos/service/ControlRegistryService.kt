@@ -35,6 +35,20 @@ class ControlRegistryService {
             CardinalDirection.WEST to ArrayList<ISensor>()
     )
 
+    private val cycle = hashMapOf(
+            CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
+            CardinalDirection.EAST to ArrayList<ITrafficControl>(),
+            CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
+            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+    )
+
+    private val cycleSensors = hashMapOf(
+            CardinalDirection.NORTH to ArrayList<ISensor>(),
+            CardinalDirection.EAST to ArrayList<ISensor>(),
+            CardinalDirection.SOUTH to ArrayList<ISensor>(),
+            CardinalDirection.WEST to ArrayList<ISensor>()
+    )
+
     val vesselSensors = hashMapOf(
             CardinalDirection.WEST to VesselSensor(CardinalDirection.WEST, 0), // Sensor oost -> west
             CardinalDirection.INVALID to VesselSensor(CardinalDirection.INVALID, 1), // Sensor onder brug
@@ -72,7 +86,10 @@ class ControlRegistryService {
                 else registerTrafficControl(motorised, direction, control)
             }
             LaneType.FOOT -> TODO("Foot lanes not yet implemented")
-            LaneType.CYCLE -> TODO("Cycle lanes not yet implemented")
+            LaneType.CYCLE -> {
+                if (control is ISensor) registerTrafficControl(cycleSensors, direction, control)
+                else registerTrafficControl(cycle, direction, control)
+            }
             LaneType.VESSEL -> {
                 logger.warn { "No vessel controls have to be registered" }
             }
@@ -120,6 +137,8 @@ class ControlRegistryService {
         registerEastMotorisedControls()
         registerSouthMotorisedControls()
         registerWestMotorisedControls()
+
+        registerCycleControls()
 
         initControls()
     }
@@ -203,5 +222,29 @@ class ControlRegistryService {
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, MotorisedTrafficLight(CardinalDirection.NORTH))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE))
         registerTrafficControl(LaneType.MOTORISED, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR))
+    }
+
+    private fun registerCycleControls() {
+        // Oost > West 0
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.NORTH, CycleTrafficLight(CardinalDirection.WEST))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.NORTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE, LaneType.CYCLE))
+
+        // Zuid > Noord 1
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.EAST, CycleTrafficLight(CardinalDirection.NORTH))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.EAST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.CLOSE, LaneType.CYCLE))
+
+        // Noorden van spoor West > Oost 2
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.SOUTH, CycleTrafficLight(CardinalDirection.EAST))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.CLOSE, LaneType.CYCLE))
+
+        // Zuiden van spoort Oost <-> West 3
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.SOUTH, CycleTrafficLight(CardinalDirection.WEST))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.EAST, TrafficSensor.Location.FAR, LaneType.CYCLE))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.SOUTH, TrafficSensor(CardinalDirection.WEST, TrafficSensor.Location.CLOSE, LaneType.CYCLE))
+
+        // Noord <-> Zuid 4
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.WEST, CycleTrafficLight(CardinalDirection.SOUTH))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.WEST, TrafficSensor(CardinalDirection.NORTH, TrafficSensor.Location.FAR, LaneType.CYCLE))
+        registerTrafficControl(LaneType.CYCLE, CardinalDirection.WEST, TrafficSensor(CardinalDirection.SOUTH, TrafficSensor.Location.CLOSE, LaneType.CYCLE))
     }
 }

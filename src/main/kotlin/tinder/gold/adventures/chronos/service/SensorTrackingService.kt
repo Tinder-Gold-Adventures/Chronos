@@ -32,7 +32,7 @@ class SensorTrackingService {
 //        map[topic] = SensorCache(0, 0)
 //    }
 
-    fun isConnected() = map.any()
+//    fun isConnected() = map.any()
 
     fun getRealCount(topic: String) = if (!map.containsKey(topic)) 0
     else map[topic]!!.let { it.activeCount - it.inactiveCount }

@@ -16,6 +16,9 @@ class ScoringService {
     @Autowired
     private lateinit var trafficLightTrackingService: TrafficLightTrackingService
 
+    @Autowired
+    private lateinit var transferService: TransferService
+
     /**
      * A map that holds the priority for a traffic light
      */
@@ -42,10 +45,13 @@ class ScoringService {
     }
 
     private fun calculateScore(control: TrafficLight): Int {
-        val topic = control.publisher.topic.name
-        val carScore = sensorTrackingService.getRealCount(topic)
+        val carScore = transferService.getSensorsForTrafficLight(control).sumBy {
+            sensorTrackingService.getRealCount(it)
+        }
         val timeScore = trafficLightTrackingService.getScore(control)
-        return carScore + timeScore
+        val score = carScore + timeScore
+        logger.info { "Calculated score $score for ${control.publisher.topic.name}" }
+        return score
     }
 
     fun getHighestScore() = map.map { it.value }.max() ?: 0

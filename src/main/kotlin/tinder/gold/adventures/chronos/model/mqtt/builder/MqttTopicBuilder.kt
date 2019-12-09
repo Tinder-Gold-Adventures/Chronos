@@ -1,14 +1,13 @@
 package tinder.gold.adventures.chronos.model.mqtt.builder
 
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
+import tinder.gold.adventures.chronos.mqtt.MqttExt
 
 infix fun MqttTopicBuilder.CardinalDirection.to(otherDir: MqttTopicBuilder.CardinalDirection): String = "${this.name.toLowerCase()}${otherDir.name.toLowerCase()}"
 
 object MqttTopicBuilder {
 
     //<team_id>/<lane_type>/<group_id>/<component_type>/<component_id>
-
-    private const val TEAM_ID = 24
 
     enum class LaneType {
         FOOT,
@@ -37,6 +36,6 @@ object MqttTopicBuilder {
     }
 
     fun getTopicString(subject: MqttTopicBuilderSubject, control: ITrafficControl): String
-            = "${TEAM_ID}/${subject.getLaneType()}/${subject.getGroupId(control)}/${subject.getComponentType()}/${control.componentId}"
+            = "${MqttExt.Connection.TeamId}/${subject.getLaneType()}/${subject.getGroupId(control)}/${subject.getComponentType()}/${control.componentId}"
 
 }

@@ -10,7 +10,8 @@ import javax.annotation.PostConstruct
 @Service
 class GroupingService {
 
-    var activeGrouping: Grouping? = null
+    // TODO
+//    var activeGrouping: Grouping? = null
 
     sealed class Grouping {
         object GROUP_ONE : Grouping()

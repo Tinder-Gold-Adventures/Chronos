@@ -29,49 +29,46 @@ class ControlRegistryService {
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
 
-    @Autowired
-    private lateinit var scoringService: ScoringService
-
     private val motorised = hashMapOf(
-            CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.EAST to ArrayList<ITrafficControl>(),
-            CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+            CardinalDirection.NORTH to ArrayList<TrafficLight>(),
+            CardinalDirection.EAST to ArrayList(),
+            CardinalDirection.SOUTH to ArrayList(),
+            CardinalDirection.WEST to ArrayList()
     )
 
     private val motorisedSensors = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ISensor>(),
-            CardinalDirection.EAST to ArrayList<ISensor>(),
-            CardinalDirection.SOUTH to ArrayList<ISensor>(),
-            CardinalDirection.WEST to ArrayList<ISensor>()
+            CardinalDirection.EAST to ArrayList(),
+            CardinalDirection.SOUTH to ArrayList(),
+            CardinalDirection.WEST to ArrayList()
     )
 
     private val cycle = hashMapOf(
-            CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.EAST to ArrayList<ITrafficControl>(),
-            CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+            CardinalDirection.NORTH to ArrayList<TrafficLight>(),
+            CardinalDirection.EAST to ArrayList(),
+            CardinalDirection.SOUTH to ArrayList(),
+            CardinalDirection.WEST to ArrayList()
     )
 
     private val cycleSensors = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ISensor>(),
-            CardinalDirection.EAST to ArrayList<ISensor>(),
-            CardinalDirection.SOUTH to ArrayList<ISensor>(),
-            CardinalDirection.WEST to ArrayList<ISensor>()
+            CardinalDirection.EAST to ArrayList(),
+            CardinalDirection.SOUTH to ArrayList(),
+            CardinalDirection.WEST to ArrayList()
     )
 
     private val foot = hashMapOf(
-            CardinalDirection.NORTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.EAST to ArrayList<ITrafficControl>(),
-            CardinalDirection.SOUTH to ArrayList<ITrafficControl>(),
-            CardinalDirection.WEST to ArrayList<ITrafficControl>()
+            CardinalDirection.NORTH to ArrayList<TrafficLight>(),
+            CardinalDirection.EAST to ArrayList(),
+            CardinalDirection.SOUTH to ArrayList(),
+            CardinalDirection.WEST to ArrayList()
     )
 
     private val footSensors = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ISensor>(),
-            CardinalDirection.EAST to ArrayList<ISensor>(),
-            CardinalDirection.SOUTH to ArrayList<ISensor>(),
-            CardinalDirection.WEST to ArrayList<ISensor>()
+            CardinalDirection.EAST to ArrayList(),
+            CardinalDirection.SOUTH to ArrayList(),
+            CardinalDirection.WEST to ArrayList()
     )
 
     val vesselSensors = hashMapOf(
@@ -103,6 +100,18 @@ class ControlRegistryService {
 
     val trackBarriers = TrainControlBarrier()
     val trackWarningLights = TrainWarningLight()
+
+    private var sensors = listOf<ISensor>()
+    fun getSensor(topic: String) = sensors.firstOrNull { it.publisher.topic.name == topic }
+
+    private var lights = listOf<TrafficLight>()
+    fun getTrafficLight(topic: String) = lights.firstOrNull { it.publisher.topic.name == topic }
+
+    final var vesselControls = listOf<TrafficLight>()
+        private set
+
+    final var trackControls = listOf<TrafficLight>()
+        private set
 
     fun registerTrafficControl(laneType: LaneType, direction: CardinalDirection, control: ITrafficControl) {
         when (laneType) {
@@ -147,7 +156,6 @@ class ControlRegistryService {
         }
         if (control is TrafficLight) {
             trafficLightTrackingService.register(control)
-            scoringService.register(control)
         } else if (control is TrafficSensor) {
             sensorTrackingService.register(control)
         }
@@ -155,13 +163,37 @@ class ControlRegistryService {
     }
 
     fun getMotorisedSensors() = motorisedSensors
-    fun getMotorisedSensors(fromDir: CardinalDirection) = motorisedSensors[fromDir]!!
-    fun getMotorisedControls() = motorised
-    fun getMotorisedControls(fromDir: CardinalDirection) = motorised[fromDir]!!
 
     @PostConstruct
     fun init() {
         registerControls()
+
+        sensors = motorisedSensors.map { it.value }
+                .union(cycleSensors.map { it.value })
+                .union(footSensors.map { it.value })
+                .flatten()
+
+        lights = motorised.map { it.value }
+                .union(cycle.map { it.value })
+                .union(foot.map { it.value })
+                .flatten()
+
+        trackControls = motorised[CardinalDirection.SOUTH]!!
+                .union(motorised[CardinalDirection.EAST]!!
+                        .filter { it.directionTo == CardinalDirection.SOUTH })
+                .union(motorised[CardinalDirection.WEST]!!
+                        .filter { it.directionTo == CardinalDirection.SOUTH })
+                .union(motorised[CardinalDirection.NORTH]!!
+                        .filter { it.directionTo == CardinalDirection.SOUTH })
+                .toList()
+
+        vesselControls = motorised[CardinalDirection.SOUTH]!!
+                .filter { it.directionTo == CardinalDirection.NORTH }
+                .union(motorised[CardinalDirection.EAST]!!
+                        .filter { it.directionTo == CardinalDirection.NORTH })
+                .union(motorised[CardinalDirection.WEST]!!
+                        .filter { it.directionTo == CardinalDirection.NORTH })
+                .toList()
     }
 
     private fun registerControls() {

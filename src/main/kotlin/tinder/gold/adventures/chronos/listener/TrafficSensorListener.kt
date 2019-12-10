@@ -23,15 +23,27 @@ class TrafficSensorListener : MqttListener<TrafficSensor>() {
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
 
+    private var isInbound = false
+
     override fun callback(topic: String, msg: MqttMessage) {
+
+        val componentId = topic.split("/").last()
+        val isFarSensor = componentId == "1" || componentId == "3"
+
         when (val str = msg.getPayloadString()) {
             "0" -> {
-                sensorTrackingService.putSensorValue(topic, 0)
-                logger.info { "$topic received 0 sensor value" }
+                if (isFarSensor) {
+                    sensorTrackingService.countFar(topic, false)
+                } else {
+                    sensorTrackingService.countClose(topic, false)
+                }
             }
             "1" -> {
-                sensorTrackingService.putSensorValue(topic, 1)
-                logger.info { "$topic received 1 sensor value" }
+                if (isFarSensor) {
+                    sensorTrackingService.countFar(topic)
+                } else {
+                    sensorTrackingService.countClose(topic)
+                }
             }
             else -> {
                 logger.error { "Impossible value on $topic: $str" }

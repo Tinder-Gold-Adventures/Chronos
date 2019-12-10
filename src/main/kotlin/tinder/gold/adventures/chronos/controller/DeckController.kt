@@ -7,9 +7,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.listener.VesselSensorListener
-import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.service.ControlRegistryService
-import tinder.gold.adventures.chronos.service.GroupingService
 import tinder.gold.adventures.chronos.service.TrafficFilterService
 import javax.annotation.PostConstruct
 
@@ -73,7 +71,7 @@ class DeckController {
     fun activateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Activating vessel groups" }
 
-        val lights = GroupingService.Controls.VesselControls.map { it as TrafficLight }
+        val lights = controlRegistryService.vesselControls
         val controlsToTurnRed = trafficFilterService.blockTrafficLights(lights)
         launch {
             lightController.turnOffLightsDelayed(controlsToTurnRed)
@@ -100,6 +98,7 @@ class DeckController {
     fun deactivateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Deactivating vessel groups" }
 
+        // TODO
         // Turn on the vessel lights
         controlRegistryService.vesselLights.forEach { (_, light) ->
             light.turnRed(client)
@@ -117,7 +116,7 @@ class DeckController {
         // Turn off warning lights
         controlRegistryService.vesselWarningLights.turnOff(client)
         // Allow the traffic controls again
-        trafficFilterService.allowTrafficLights(GroupingService.Controls.VesselControls)
+        trafficFilterService.allowTrafficLights(controlRegistryService.vesselControls)
 
         logger.info { "Deactivated vessel groups" }
     }

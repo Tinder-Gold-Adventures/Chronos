@@ -15,27 +15,31 @@ class SensorTrackingService {
 
     private val map = hashMapOf<String, SensorCache>()
 
-    fun putSensorValue(topic: String, value: Int) {
+    fun countFar(topic: String, add: Boolean = true) {
         if (!map.containsKey(topic)) {
             throw RuntimeException("Map does not contain $topic")
         }
-
         val oldCache = map[topic]!!
-        when (value) {
-            0 -> map[topic] = oldCache.copy(inactiveCount = oldCache.inactiveCount + 1)
-            1 -> map[topic] = oldCache.copy(activeCount = oldCache.activeCount + 1)
+        map[topic] = oldCache.copy(farCount = oldCache.farCount + (if (add) 1 else -1))
+    }
+
+    fun countClose(topic: String, add: Boolean = true) {
+        if (!map.containsKey(topic)) {
+            throw RuntimeException("Map does not contain $topic")
         }
+        val oldCache = map[topic]!!
+        map[topic] = oldCache.copy(closeCount = oldCache.farCount + (if (add) 1 else -1))
     }
 
     // TODO
-//    fun resetCache(topic: String) {
-//        map[topic] = SensorCache(0, 0)
-//    }
+    fun resetCache(topic: String) {
+        map[topic] = SensorCache(0, 0)
+    }
 
 //    fun isConnected() = map.any()
 
     fun getRealCount(topic: String) = if (!map.containsKey(topic)) 0
-    else map[topic]!!.let { it.activeCount - it.inactiveCount }
+    else map[topic]!!.let { it.farCount + it.closeCount }
 
     // TODO
 //    fun getActiveCount(topic: String) = if (!map.containsKey(topic)) 0

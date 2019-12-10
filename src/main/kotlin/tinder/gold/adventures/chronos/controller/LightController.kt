@@ -26,21 +26,8 @@ class LightController {
         turnLightsYellow(controls)
         delay(3000L)
         turnLightsRed(controls)
-    }
 
-    // TODO
-//    suspend fun turnOnLight(light: TrafficLight) = withContext(Dispatchers.IO) {
-//        light.turnGreen(client)
-//        trafficLightTrackingService.track(light)
-//    }
-//
-//    suspend fun turnOffLight(light: TrafficLight) = withContext(Dispatchers.IO) {
-//        light.turnRed(client)
-//    }
-//
-//    suspend fun turnOffLights(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
-//        controls.forEach { it.turnRed(client) }
-//    }
+    }
 
     suspend fun turnOnLights(controls: List<TrafficLight>) = withContext(Dispatchers.IO) {
         controls.forEach {
@@ -56,12 +43,4 @@ class LightController {
     fun CoroutineScope.turnLightsRed(controls: List<TrafficLight>) {
         controls.forEach { it.turnRed(client) }
     }
-
-    // TODO
-//    fun CoroutineScope.turnLightsGreen(controls: List<TrafficLight>) {
-//        controls.forEach {
-//            it.turnGreen(client)
-//            trafficLightTrackingService.track(it)
-//        }
-//    }
 }

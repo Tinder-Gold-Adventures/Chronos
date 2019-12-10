@@ -2,6 +2,7 @@ package tinder.gold.adventures.chronos.service
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import tinder.gold.adventures.chronos.ChronosEngine
 import tinder.gold.adventures.chronos.model.traffic.core.ITrafficControl
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.TrafficLightState
@@ -13,7 +14,7 @@ class TrafficFilterService {
     private lateinit var trafficLightTrackingService: TrafficLightTrackingService
 
     @Autowired
-    private lateinit var trafficControlService: TrafficControlService
+    private lateinit var chronosEngine: ChronosEngine
 
     /**
      * Will add green to the lights' state filter, disallowing it from turning green
@@ -23,7 +24,7 @@ class TrafficFilterService {
         controls.forEach {
             it.stateFilters.add(TrafficLightState.Green)
             trafficLightTrackingService.trackWaitingTime(it)
-            trafficControlService.removeActiveLight(it)
+            chronosEngine.removeActiveLight(it)
             if (it.trafficLightState == TrafficLightState.Green) {
                 controlsToTurnRed.add(it)
             }
@@ -39,6 +40,7 @@ class TrafficFilterService {
         controls.map { it as TrafficLight }
                 .forEach {
                     it.stateFilters.remove(TrafficLightState.Green)
+                    // TODO should this be here?
                     trafficLightTrackingService.resetWaitingTime(it)
                 }
     }

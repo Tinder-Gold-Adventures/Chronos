@@ -1,4 +1,4 @@
-package tinder.gold.adventures.chronos.service
+package tinder.gold.adventures.chronos
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -9,24 +9,27 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.controller.LightController
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
+import tinder.gold.adventures.chronos.service.ComponentSortingService
+import tinder.gold.adventures.chronos.service.ScoringService
+import tinder.gold.adventures.chronos.service.SensorTrackingService
 import javax.annotation.PostConstruct
 
 @Service
-class TrafficControlService {
+class ChronosEngine {
 
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var groupingService: GroupingService
-
-    @Autowired
-    private lateinit var sensorTrackingService: SensorTrackingService
+    private lateinit var componentSortingService: ComponentSortingService
 
     @Autowired
     private lateinit var lightController: LightController
 
     @Autowired
     private lateinit var scoringService: ScoringService
+
+    @Autowired
+    private lateinit var sensorTrackingService: SensorTrackingService
 
     private var activeLights = arrayListOf<TrafficLight>()
     fun removeActiveLight(light: TrafficLight) {
@@ -46,12 +49,19 @@ class TrafficControlService {
     private suspend fun updateLights(): Long {
         logger.info { "Lights timer..." }
 
-        logger.info { "Updating priorities" }
         scoringService.updateScores()
+        val lights = scoringService.getScores()
 
-        val lights = scoringService.getHighScoringLights()
-        if (lights.any()) {
-            updateLights(lights)
+        if (lights.any { it.value > 0 }) {
+            val compliantGroups = componentSortingService.getCompliantGroups(lights.map { it.key })
+            val scores = componentSortingService.calculateScores(compliantGroups)
+            val highestScore = scores.map { it.second }.max()!!
+            val highestScoring = scores.filter { it.second >= highestScore }.random()
+            logger.info { "Highest scoring (${highestScoring.second}): ${highestScoring.first.joinToString("\n")}" }
+            updateLights(highestScoring.first.map { it.component as TrafficLight })
+            highestScoring.first.flatMap { it.sensorComponents }.forEach {
+                sensorTrackingService.resetCache(it.publisher.topic.name)
+            }
         } else {
             logger.info { "NO LIGHTS!" }
         }
@@ -60,7 +70,7 @@ class TrafficControlService {
         return 8000L
     }
 
-    suspend fun updateLights(lights: ArrayList<TrafficLight>) {
+    suspend fun updateLights(lights: List<TrafficLight>) {
         logger.info { "Updating active group" }
 
         if (activeLights.any()) {
@@ -69,7 +79,7 @@ class TrafficControlService {
 
         logger.info { "Enabling new group" }
         lightController.turnOnLights(lights)
-        activeLights = lights
+        activeLights = ArrayList(lights)
     }
 
     private suspend fun disableActiveLights() {
@@ -77,12 +87,4 @@ class TrafficControlService {
         lightController.turnOffLightsDelayed(activeLights)
         delay(3000L)
     }
-
-//    fun resetScore(grouping: GroupingService.Grouping) {
-//        GroupingService.Sensors.getGroup(grouping)
-//                .filterIsInstance<TrafficSensor>()
-//                .forEach {
-//                    sensorTrackingService.resetCache(it.subscriber.topic.name)
-//                }
-//    }
 }

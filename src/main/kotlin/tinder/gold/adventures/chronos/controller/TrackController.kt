@@ -5,12 +5,10 @@ import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.traffic.core.IControlBarrier.BarrierState
 import tinder.gold.adventures.chronos.model.traffic.core.IWarningLight
-import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.service.ControlRegistryService
-import tinder.gold.adventures.chronos.service.GroupingService
 import tinder.gold.adventures.chronos.service.TrafficFilterService
 
 @Component
@@ -30,10 +28,10 @@ class TrackController {
     @Autowired
     private lateinit var client: MqttAsyncClient
 
-    fun activateTrackGroups(direction: MqttTopicBuilder.CardinalDirection) = runBlocking {
+    fun activateTrackGroups(direction: CardinalDirection) = runBlocking {
         logger.info { "Activating train groups" }
 
-        val controlsToTurnRed = trafficFilterService.blockTrafficLights(GroupingService.Controls.TrainControls.map { it as TrafficLight })
+        val controlsToTurnRed = trafficFilterService.blockTrafficLights(controlRegistryService.trackControls)
         GlobalScope.launch(Dispatchers.IO) {
             controlRegistryService.trackWarningLights.turnOn(client)
             delay(5000L)
@@ -50,7 +48,7 @@ class TrackController {
         lightController.turnOffLightsDelayed(controlsToTurnRed)
     }
 
-    fun deactivateTrackGroups(direction: MqttTopicBuilder.CardinalDirection) {
+    fun deactivateTrackGroups(direction: CardinalDirection) {
         logger.info { "Deactivating train groups" }
 
         GlobalScope.launch(Dispatchers.IO) {
@@ -64,7 +62,7 @@ class TrackController {
             controlRegistryService.trackWarningLights.turnOff(client)
             check(controlRegistryService.trackWarningLights.state == IWarningLight.WarningLightState.Off)
 
-            trafficFilterService.allowTrafficLights(GroupingService.Controls.TrainControls)
+            trafficFilterService.allowTrafficLights(controlRegistryService.trackControls)
 
             logger.info { "Deactivated train groups" }
         }

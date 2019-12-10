@@ -1,0 +1,115 @@
+{
+  "motorised/0/traffic_light/0": {
+    "direction": "NORTH to EAST",
+    "incompliantLanes": [
+      "motorised/4/traffic_light/0",
+      "motorised/5/traffic_light/0",
+      "motorised/5/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/0/sensor/0",
+      "motorised/0/sensor/1"
+    ]
+  },
+  "motorised/1/traffic_light/0": {
+    "direction": "NORTH to SOUTH",
+    "incompliantLanes": [
+      "motorised/6/traffic_light/0",
+      "motorised/7/traffic_light/0",
+      "motorised/7/traffic_light/0",
+      "motorised/4/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/1/sensor/0",
+      "motorised/1/sensor/1",
+      "motorised/1/sensor/2",
+      "motorised/1/sensor/4"
+    ]
+  },
+  "motorised/2/traffic_light/0": {
+    "direction": "NORTH to WEST",
+    "incompliantLanes": [
+      "motorised/6/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/2/sensor/0",
+      "motorised/2/sensor/1"
+    ]
+  },
+  "motorised/3/traffic_light/0": {
+    "direction": "EAST to NORTH",
+    "incompliantLanes": [
+      "motorised/5/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/3/sensor/0",
+      "motorised/3/sensor/1"
+    ]
+  },
+  "motorised/4/traffic_light/0": {
+    "direction": "EAST to SOUTH",
+    "incompliantLanes": [
+      "motorised/1/traffic_light/0",
+      "motorised/8/traffic_light/0",
+      "motorised/5/traffic_light/0",
+      "motorised/0/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/4/sensor/0",
+      "motorised/4/sensor/1"
+    ]
+  },
+  "motorised/5/traffic_light/0": {
+    "direction": "SOUTH to NORTH",
+    "incompliantLanes": [
+      "motorised/0/traffic_light/0",
+      "motorised/3/traffic_light/0",
+      "motorised/4/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/5/sensor/0",
+      "motorised/5/sensor/1",
+      "motorised/5/sensor/2",
+      "motorised/5/sensor/3"
+    ]
+  },
+  "motorised/6/traffic_light/0": {
+    "direction": "SOUTH to WEST",
+    "incompliantLanes": [
+      "motorised/1/traffic_light/0",
+      "motorised/4/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/6/sensor/0",
+      "motorised/6/sensor/1"
+    ]
+  },
+  "motorised/7/traffic_light/0": {
+    "direction": "WEST to NORTH",
+    "incompliantLanes": [
+      "motorised/1/traffic_light/0",
+      "motorised/6/traffic_light/0",
+      "motorised/0/traffic_light/0",
+      "motorised/5/traffic_light/0",
+      "motorised/3/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/7/sensor/0",
+      "motorised/7/sensor/1"
+    ]
+  },
+  "motorised/8/traffic_light/0": {
+    "direction": "WEST to SOUTH",
+    "incompliantLanes": [
+      "motorised/1/traffic_light/0",
+      "motorised/4/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/8/sensor/0",
+      "motorised/8/sensor/1"
+    ]
+  }
+}

@@ -4,7 +4,7 @@
     "incompliantLanes": [
       "motorised/4/traffic_light/0",
       "motorised/5/traffic_light/0",
-      "motorised/5/traffic_light/0"
+      "motorised/7/traffic_light/0"
     ],
     "sensors": [
       "motorised/0/sensor/0",
@@ -16,8 +16,8 @@
     "incompliantLanes": [
       "motorised/6/traffic_light/0",
       "motorised/7/traffic_light/0",
-      "motorised/7/traffic_light/0",
-      "motorised/4/traffic_light/0"
+      "motorised/4/traffic_light/0",
+      "motorised/8/traffic_light/0"
     ],
     "sensors": [
       "motorised/1/sensor/0",
@@ -53,7 +53,8 @@
       "motorised/1/traffic_light/0",
       "motorised/8/traffic_light/0",
       "motorised/5/traffic_light/0",
-      "motorised/0/traffic_light/0"
+      "motorised/0/traffic_light/0",
+      "motorised/6/traffic_light/0"
     ],
     "sensors": [
       "motorised/4/sensor/0",
@@ -80,7 +81,8 @@
     "incompliantLanes": [
       "motorised/1/traffic_light/0",
       "motorised/4/traffic_light/0",
-      "motorised/7/traffic_light/0"
+      "motorised/7/traffic_light/0",
+      "motorised/2/traffic_light/0"
     ],
     "sensors": [
       "motorised/6/sensor/0",

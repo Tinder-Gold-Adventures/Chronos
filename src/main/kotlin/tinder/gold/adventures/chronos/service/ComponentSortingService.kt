@@ -8,7 +8,7 @@ import tinder.gold.adventures.chronos.model.serializable.MotorisedLaneInfo
 @Service
 class ComponentSortingService {
 
-    private val logger = KotlinLogging.logger {  }
+    private val logger = KotlinLogging.logger { }
 
     @Autowired
     private lateinit var scoringService: ScoringService
@@ -18,32 +18,24 @@ class ComponentSortingService {
         infos.forEach {
             val pair = Pair(it, it.sumBy { info -> scoringService.getScore(info) })
             scores.add(pair)
-            logger.info { "Score ${pair.second}"}
+            logger.info { "Score ${pair.second}" }
         }
         return scores
     }
 
     fun getCompliantGroups(map: List<MotorisedLaneInfo>): List<List<MotorisedLaneInfo>> {
-        val initialGroups = arrayListOf<List<MotorisedLaneInfo>>()
-
-        map.forEach {
-            initialGroups.add(
-                    map.subtract(it.incompliantLanesComponents).toList()
-            )
-        }
-
-        val compliantGroups = arrayListOf<List<MotorisedLaneInfo>>()
-        initialGroups.forEach {
-            compliantGroups.add(
-                    getGroup(it, 0)
-            )
-        }
-
-        return compliantGroups.toList()
+        val initialGroups = map.map { map.subtract(it.incompliantLanesComponents).toList() }
+        return getPermutations(initialGroups)
     }
 
-    fun getGroup(list: List<MotorisedLaneInfo>, index: Int): List<MotorisedLaneInfo> {
-        if (index >= list.size) return list
-        return getGroup(list.subtract(list[index].incompliantLanesComponents).toList(), index + 1)
+    private fun getPermutations(origList: List<List<MotorisedLaneInfo>>): List<List<MotorisedLaneInfo>> {
+        val permutations = arrayListOf<List<MotorisedLaneInfo>>()
+        for (subList in origList) {
+            for (i in subList.indices) {
+                if (i == 0) continue
+                permutations.add(subList.subtract(subList[i].incompliantLanesComponents).toList())
+            }
+        }
+        return permutations.toList()
     }
 }

@@ -36,18 +36,26 @@ class DeckController {
     @Autowired
     private lateinit var controlRegistryService: ControlRegistryService
 
+    private var cooldown = 0
+
     @PostConstruct
     fun init() = runBlocking {
         // launch a new coroutine so we don't block the spring initializer
         GlobalScope.launch {
             while (true) {
+                if(cooldown > 0) {
+                    cooldown--
+                    delay(1000)
+                    continue
+                }
                 if (vesselSensorListener.vesselsWest || vesselSensorListener.vesselsEast) {
                     val rendezvousChannel = Channel<Unit>(Channel.RENDEZVOUS)
                     launchControlProcess(rendezvousChannel)
                     activateVesselGroups()
                     rendezvousChannel.receive()
                     deactivateVesselGroups()
-                    logger.info { "Vessel controller done" }
+                    cooldown = 120
+                    logger.info { "Vessel controller done, cooldown set to 120 seconds" }
                 }
                 delay(15000L)
             }

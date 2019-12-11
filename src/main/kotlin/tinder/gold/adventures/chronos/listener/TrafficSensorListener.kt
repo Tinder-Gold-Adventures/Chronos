@@ -23,8 +23,6 @@ class TrafficSensorListener : MqttListener<TrafficSensor>() {
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
 
-    private var isInbound = false
-
     override fun callback(topic: String, msg: MqttMessage) {
 
         val componentId = topic.split("/").last()

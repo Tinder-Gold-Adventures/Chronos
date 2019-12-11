@@ -7,6 +7,7 @@ import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.listener.VesselSensorListener
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.service.ControlRegistryService
 import tinder.gold.adventures.chronos.service.TrafficFilterService
 import javax.annotation.PostConstruct
@@ -40,32 +41,43 @@ class DeckController {
         // launch a new coroutine so we don't block the spring initializer
         GlobalScope.launch {
             while (true) {
-                // TODO when to trigger?
-                if (vesselSensorListener.vesselCount > 0) {
+                if (vesselSensorListener.vesselsWest || vesselSensorListener.vesselsEast) {
                     val rendezvousChannel = Channel<Unit>(Channel.RENDEZVOUS)
-
-                    // control process
-                    launch(this.coroutineContext) {
-                        delay(15000L) // initial wait time for boats to start moving
-                        var iterations = 0
-                        while (vesselSensorListener.passingThrough || vesselSensorListener.vesselCount > 0) {
-                            logger.info { "Vessel deactivation loop iteration $iterations, vessel count ${vesselSensorListener.vesselCount}" }
-                            // while boats are passing through delay the deactivation loop
-                            delay(5000L)
-                            if (++iterations >= 5) {
-                                break // force-break the deactivation loop if 5 iterations have passed
-                            }
-                        }
-                        deactivateVesselGroups()
-                        rendezvousChannel.offer(Unit)
-                    }
-
+                    launchControlProcess(rendezvousChannel)
                     activateVesselGroups()
                     rendezvousChannel.receive()
+                    deactivateVesselGroups()
+                    logger.info { "Vessel controller done" }
                 }
-                delay(10000L)
+                delay(15000L)
             }
         }
+    }
+
+    private var forceClose = false
+    private var activeSide: CardinalDirection? = null
+
+    fun isSideFinished() = if (activeSide == CardinalDirection.WEST) !vesselSensorListener.vesselsWest
+    else !vesselSensorListener.vesselsEast
+
+    fun areSidesFinished() = !vesselSensorListener.vesselsEast && !vesselSensorListener.vesselsWest
+
+    /**
+     * Responsible for closing the bridge again when vessels have passed by
+     */
+    private fun CoroutineScope.launchControlProcess(rendezvousChannel: Channel<Unit>) = launch(this.coroutineContext) {
+        // Wait until boats start passing through and are done passing through
+        while (activeSide == null || !areSidesFinished())
+        {
+            delay(1000L)
+            if (forceClose) break
+        }
+
+        activeSide == null
+        forceClose = false
+        rendezvousChannel.offer(Unit)
+
+        logger.info { "Control process done" }
     }
 
     fun activateVesselGroups() = runBlocking(Dispatchers.IO) {
@@ -89,23 +101,54 @@ class DeckController {
         // Open the deck
         controlRegistryService.vesselDeck.open(client)
         delay(10000L)
-        // TODO light priorities
-        controlRegistryService.vesselLights.forEach { (_, light) ->
+
+        controlVesselLights()
+
+        logger.info { "Activated vessel groups" }
+    }
+
+    /**
+     * Controls the vessel lights that let through vessels
+     */
+    suspend fun CoroutineScope.controlVesselLights() {
+        suspend fun controlLight(east: Boolean = true) {
+            val dir = if (east) CardinalDirection.EAST else CardinalDirection.WEST
+            activeSide = dir
+            val light = controlRegistryService.vesselLights[dir]!!
             light.turnGreen(client)
+            while (!isSideFinished()) {
+                delay(1000L)
+            }
+            light.turnRed(client)
         }
+
+        if (vesselSensorListener.vesselsEast) {
+            controlLight(east = true)
+        }
+
+        // Wait a little for boats to pass
+        delay(4000L)
+        if (vesselSensorListener.passingThrough) {
+            delay(1000L)
+        }
+
+        if (vesselSensorListener.vesselsWest) {
+            controlLight(east = false)
+        }
+
+        forceClose = true
     }
 
     fun deactivateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Deactivating vessel groups" }
 
-        // TODO
-        // Turn on the vessel lights
-        controlRegistryService.vesselLights.forEach { (_, light) ->
-            light.turnRed(client)
-        }
-        // Wait until no boat is passing through
-        while (vesselSensorListener.passingThrough) {
+        // Wait for boats to have passed through
+        val wasPassingThrough = vesselSensorListener.passingThrough
+        while(vesselSensorListener.passingThrough) {
             delay(1000L)
+        }
+        if (wasPassingThrough) {
+            delay(4000L)
         }
         // Close the deck
         controlRegistryService.vesselDeck.close(client)

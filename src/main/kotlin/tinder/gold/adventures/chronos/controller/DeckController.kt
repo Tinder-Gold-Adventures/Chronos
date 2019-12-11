@@ -79,6 +79,8 @@ class DeckController {
 
         // Turn on warning lights
         controlRegistryService.vesselWarningLights.turnOn(client)
+        //Wait 2 seconds so Simulator has less room for errors
+        delay(2000L)
         // Wait until deck is clear
         while (vesselSensorListener.deckActivated) {
             delay(1000L)

@@ -19,7 +19,7 @@ import tinder.gold.adventures.chronos.model.traffic.sensor.VesselSensor
 import javax.annotation.PostConstruct
 
 @Service
-class ControlRegistryService {
+class ComponentRegistryService {
 
     private val logger = KotlinLogging.logger { }
 

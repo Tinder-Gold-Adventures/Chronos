@@ -1,57 +1,36 @@
 package tinder.gold.adventures.chronos.service
 
-import mu.KotlinLogging
 import org.springframework.stereotype.Service
-import tinder.gold.adventures.chronos.model.job.SensorCache
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 
 /**
- * This service keeps track of sensor values
+ * Responsible for keeping track of sensor values
  */
 @Service
 class SensorTrackingService {
 
-    private val logger = KotlinLogging.logger { }
-
-    private val map = hashMapOf<String, SensorCache>()
+    private val farCounts = hashMapOf<String, Int>()
+    private val closeCounts = hashMapOf<String, Int>()
 
     fun countFar(topic: String, add: Boolean = true) {
-        if (!map.containsKey(topic)) {
+        if (!farCounts.containsKey(topic)) {
             throw RuntimeException("Map does not contain $topic")
         }
-        val oldCache = map[topic]!!
-        map[topic] = oldCache.copy(farCount = oldCache.farCount + (if (add) 1 else -1))
+        farCounts[topic] = farCounts[topic]!! + (if (add) 1 else -1)
     }
 
     fun countClose(topic: String, add: Boolean = true) {
-        if (!map.containsKey(topic)) {
+        if (!closeCounts.containsKey(topic)) {
             throw RuntimeException("Map does not contain $topic")
         }
-        val oldCache = map[topic]!!
-        map[topic] = oldCache.copy(closeCount = oldCache.farCount + (if (add) 1 else -1))
+        closeCounts[topic] = closeCounts[topic]!! + (if (add) 1 else -1)
     }
 
-    // TODO
-    fun resetCache(topic: String) {
-        map[topic] = SensorCache(0, 0)
-    }
-
-//    fun isConnected() = map.any()
-
-    fun getRealCount(topic: String) = if (!map.containsKey(topic)) 0
-    else map[topic]!!.let { it.farCount + it.closeCount }
-
-    // TODO
-//    fun getActiveCount(topic: String) = if (!map.containsKey(topic)) 0
-//    else map[topic]!!.activeCount
-//
-//    fun getInactiveCount(topic: String) = if (!map.containsKey(topic)) 0
-//    else map[topic]!!.inactiveCount
+    fun getCarCount(topic: String) = farCounts[topic]!! + closeCounts[topic]!!
 
     fun register(sensor: TrafficSensor) {
         val topic = sensor.publisher.topic.name
-        if (map.putIfAbsent(topic, SensorCache(0, 0)) == null) {
-            logger.info { "Registered $topic" }
-        }
+        farCounts.put(topic, 0)
+        closeCounts.put(topic, 0)
     }
 }

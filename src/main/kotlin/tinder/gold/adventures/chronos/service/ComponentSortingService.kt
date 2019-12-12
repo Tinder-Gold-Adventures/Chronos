@@ -1,24 +1,24 @@
 package tinder.gold.adventures.chronos.service
 
-import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import tinder.gold.adventures.chronos.model.serializable.MotorisedLaneInfo
 
+/**
+ * Responsible for generating all group possibilities and their scores (priority)
+ */
 @Service
 class ComponentSortingService {
 
-    private val logger = KotlinLogging.logger { }
-
     @Autowired
-    private lateinit var scoringService: ScoringService
+    private lateinit var sensorTrackingService: SensorTrackingService
 
     fun calculateScores(infos: HashSet<List<MotorisedLaneInfo>>): List<Pair<List<MotorisedLaneInfo>, Int>> {
         val scores = arrayListOf<Pair<List<MotorisedLaneInfo>, Int>>()
         infos.forEach {
-            val pair = Pair(it, it.sumBy { info -> scoringService.getScore(info) })
+            val pair = Pair(it, it.sumBy { info -> calculateScore(info) })
             scores.add(pair)
-            logger.info { "Score ${pair.second}" }
+//            logger.info { "Score ${pair.second}" }
         }
         return scores
     }
@@ -35,5 +35,15 @@ class ComponentSortingService {
             resultSets.add(current)
         for (n in remaining)
             getGroupPermutations(nodes, current.plus(n), resultSets)
+    }
+
+    private fun calculateScore(info: MotorisedLaneInfo): Int {
+//        val component = info.component!!
+        val carScore = info.sensorComponents.sumBy {
+            sensorTrackingService.getCarCount(it.publisher.topic.name)
+        }
+//        val timeScore = trafficLightTrackingService.getScore(component)
+        val score = carScore
+        return score
     }
 }

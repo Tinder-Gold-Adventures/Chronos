@@ -15,6 +15,9 @@ import tinder.gold.adventures.chronos.mqtt.MqttExt
 import javax.annotation.PostConstruct
 import kotlin.streams.toList
 
+/**
+ * Responsible for setting up a registry of information about lanes
+ */
 @Service
 class ComponentInfoService {
 
@@ -23,18 +26,18 @@ class ComponentInfoService {
     private val json = Json(JsonConfiguration.Stable)
 
     @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
+    private lateinit var componentRegistryService: ComponentRegistryService
 
     @Autowired
     private lateinit var transferService: TransferService
-
-    @Autowired
-    private lateinit var scoringService: ScoringService
 
     @PostConstruct
     fun init() {
         initMotorisedRegistry()
     }
+
+    fun getFromRegistry(topics: HashSet<String>) = motorisedRegistry.filterKeys { topics.contains(it) }.map { it.value }
+    fun getRegistryValues() = motorisedRegistry.map { it.value }
 
     private fun initMotorisedRegistry() {
         val content = this::class.java.classLoader.getResource("motorised_info.json")?.readText(Charsets.UTF_8) ?: ""
@@ -47,7 +50,6 @@ class ComponentInfoService {
 
         motorisedRegistry.forEach { (_, info) ->
             info.resolveComponents()
-            scoringService.register(info)
         }
     }
 
@@ -62,7 +64,7 @@ class ComponentInfoService {
                     directionTo = to
                 }
                 intersectingLanes = intersectingLanes.map { "${MqttExt.Connection.TeamId}/$it" }
-                component = controlRegistryService.getTrafficLight(topic) as MotorisedTrafficLight
+                component = componentRegistryService.getTrafficLight(topic) as MotorisedTrafficLight
                 sensorComponents = component!!.getSensorComponents()
             }
 
@@ -72,7 +74,7 @@ class ComponentInfoService {
     }
 
     private fun MotorisedTrafficLight.getSensorComponents() = transferService.getSensorsForTrafficLight(this)
-            .mapNotNull { controlRegistryService.getSensor(it) }
+            .mapNotNull { componentRegistryService.getSensor(it) }
             .map { it as TrafficSensor }
 
     private fun MotorisedLaneInfo.resolveComponents() {

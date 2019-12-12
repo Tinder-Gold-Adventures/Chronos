@@ -8,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.listener.VesselSensorListener
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
-import tinder.gold.adventures.chronos.service.ControlRegistryService
-import tinder.gold.adventures.chronos.service.TrafficFilterService
+import tinder.gold.adventures.chronos.service.ComponentFilterService
+import tinder.gold.adventures.chronos.service.ComponentRegistryService
 import javax.annotation.PostConstruct
 
 /**
@@ -22,7 +22,7 @@ class DeckController {
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var trafficFilterService: TrafficFilterService
+    private lateinit var componentFilterService: ComponentFilterService
 
     @Autowired
     private lateinit var client: MqttAsyncClient
@@ -34,7 +34,7 @@ class DeckController {
     private lateinit var vesselSensorListener: VesselSensorListener
 
     @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
+    private lateinit var componentRegistryService: ComponentRegistryService
 
     private var cooldown = 0
 
@@ -43,7 +43,7 @@ class DeckController {
         // launch a new coroutine so we don't block the spring initializer
         GlobalScope.launch {
             while (true) {
-                if(cooldown > 0) {
+                if (cooldown > 0) {
                     cooldown--
                     delay(1000)
                     continue
@@ -75,8 +75,7 @@ class DeckController {
      */
     private fun CoroutineScope.launchControlProcess(rendezvousChannel: Channel<Unit>) = launch(this.coroutineContext) {
         // Wait until boats start passing through and are done passing through
-        while (activeSide == null || !areSidesFinished())
-        {
+        while (activeSide == null || !areSidesFinished()) {
             delay(1000L)
             if (forceClose) break
         }
@@ -91,14 +90,14 @@ class DeckController {
     fun activateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Activating vessel groups" }
 
-        val lights = controlRegistryService.vesselControls
-        val controlsToTurnRed = trafficFilterService.blockTrafficLights(lights)
+        val lights = componentRegistryService.vesselControls
+        val controlsToTurnRed = componentFilterService.blacklist(*lights.toTypedArray())
         launch {
             lightController.turnOffLightsDelayed(controlsToTurnRed)
         }
 
         // Turn on warning lights
-        controlRegistryService.vesselWarningLights.turnOn(client)
+        componentRegistryService.vesselWarningLights.turnOn(client)
         //Wait 2 seconds so Simulator has less room for errors
         delay(2000L)
         // Wait until deck is clear
@@ -106,10 +105,10 @@ class DeckController {
             delay(1000L)
         }
         // Close the barriers
-        controlRegistryService.vesselBarriers.close(client)
+        componentRegistryService.vesselBarriers.close(client)
         delay(4000L)
         // Open the deck
-        controlRegistryService.vesselDeck.open(client)
+        componentRegistryService.vesselDeck.open(client)
         delay(10000L)
 
         controlVesselLights()
@@ -124,7 +123,7 @@ class DeckController {
         suspend fun controlLight(east: Boolean = true) {
             val dir = if (east) CardinalDirection.EAST else CardinalDirection.WEST
             activeSide = dir
-            val light = controlRegistryService.vesselLights[dir]!!
+            val light = componentRegistryService.vesselLights[dir]!!
             light.turnGreen(client)
             while (!isSideFinished()) {
                 delay(1000L)
@@ -154,22 +153,22 @@ class DeckController {
 
         // Wait for boats to have passed through
         val wasPassingThrough = vesselSensorListener.passingThrough
-        while(vesselSensorListener.passingThrough) {
+        while (vesselSensorListener.passingThrough) {
             delay(1000L)
         }
         if (wasPassingThrough) {
             delay(4000L)
         }
         // Close the deck
-        controlRegistryService.vesselDeck.close(client)
+        componentRegistryService.vesselDeck.close(client)
         delay(10000L)
         // Open the barriers
-        controlRegistryService.vesselBarriers.open(client)
+        componentRegistryService.vesselBarriers.open(client)
         delay(4000L)
         // Turn off warning lights
-        controlRegistryService.vesselWarningLights.turnOff(client)
+        componentRegistryService.vesselWarningLights.turnOff(client)
         // Allow the traffic controls again
-        trafficFilterService.allowTrafficLights(controlRegistryService.vesselControls)
+        componentFilterService.clear(*componentRegistryService.vesselControls.toTypedArray())
 
         logger.info { "Deactivated vessel groups" }
     }

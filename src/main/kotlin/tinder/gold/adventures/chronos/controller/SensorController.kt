@@ -8,7 +8,7 @@ import tinder.gold.adventures.chronos.listener.TrackSensorListener
 import tinder.gold.adventures.chronos.listener.TrafficSensorListener
 import tinder.gold.adventures.chronos.listener.VesselSensorListener
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
-import tinder.gold.adventures.chronos.service.ControlRegistryService
+import tinder.gold.adventures.chronos.service.ComponentRegistryService
 import javax.annotation.PostConstruct
 
 @Component
@@ -17,7 +17,7 @@ class SensorController {
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
+    private lateinit var componentRegistryService: ComponentRegistryService
 
     @Autowired
     private lateinit var trafficSensorListener: TrafficSensorListener
@@ -40,7 +40,7 @@ class SensorController {
      * Launch listeners for motorised sensors
      */
     private fun launchMotorisedSensorListeners() {
-        controlRegistryService.getMotorisedSensors().values
+        componentRegistryService.getMotorisedSensors().values
                 .flatten()
                 .map { it as TrafficSensor }
                 .forEach(trafficSensorListener::listen)
@@ -50,7 +50,7 @@ class SensorController {
      * Launch listeners for track sensors
      */
     private fun launchTrackSensorListeners() {
-        controlRegistryService.trackSensors.values
+        componentRegistryService.trackSensors.values
                 .forEach(trackSensorListener::listen)
     }
 
@@ -58,7 +58,7 @@ class SensorController {
      * Launch listeners for vessel sensors
      */
     private fun launchVesselSensorListeners() {
-        controlRegistryService.vesselSensors.values
+        componentRegistryService.vesselSensors.values
                 .forEach(vesselSensorListener::listen)
     }
 }

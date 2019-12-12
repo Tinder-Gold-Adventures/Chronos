@@ -45,6 +45,7 @@ class ComponentInfoService {
 
     fun getFromMotorisedRegistry(topics: HashSet<String>) = motorisedRegistry.filterKeys { topics.contains(it) }.map { it.value as MotorisedLaneInfo }
     fun getMotorisedRegistryValues() = motorisedRegistry.map { it.value as MotorisedLaneInfo }
+    fun getCycleRegistryValues() = cycleRegistry.map { it.value as CycleLaneInfo }
 
     private fun <T, R> initRegistry(deserializer: DeserializationStrategy<T>, file: String, registry: HashMap<String, ILaneInfo<R>>) where T : ILaneInfo<R>, R : TrafficLight {
         val content = this::class.java.classLoader.getResource(file)?.readText(Charsets.UTF_8) ?: ""
@@ -98,23 +99,4 @@ class ComponentInfoService {
                 .toList()
                 .map { it as MotorisedLaneInfo })
     }
-
-//    private fun MotorisedLaneInfo.resolveComponents() {
-//        this.intersectingLanesComponents = motorisedRegistry.entries.stream()
-//                .filter {
-//                    this.intersectingLanes.contains(it.key)
-//                }
-//                .map { (MutableMap.MutableEntry<String, MotorisedLaneInfo>::value).get(it) }
-//                .toList()
-//    }
-//
-//    private fun CycleLaneInfo.resolveComponents() {
-//        this.intersectingLanesComponents = cycleRegistry.entries.stream()
-//                .filter {
-//                    this.intersectingLanes.contains(it.key)
-//                }
-//                .map { (MutableMap.MutableEntry<String, CycleLaneInfo>::value).get(it) }
-//                .toList()
-//    }
-
 }

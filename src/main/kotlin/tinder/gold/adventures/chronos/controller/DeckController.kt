@@ -28,9 +28,6 @@ class DeckController {
     private lateinit var client: MqttAsyncClient
 
     @Autowired
-    private lateinit var lightController: LightController
-
-    @Autowired
     private lateinit var vesselSensorListener: VesselSensorListener
 
     @Autowired
@@ -53,9 +50,6 @@ class DeckController {
                     launchControlProcess(rendezvousChannel)
                     activateVesselGroups()
                     rendezvousChannel.receive()
-                    deactivateVesselGroups()
-                    cooldown = 120
-                    logger.info { "Vessel controller done, cooldown set to 120 seconds" }
                 }
                 delay(15000L)
             }
@@ -84,6 +78,9 @@ class DeckController {
         forceClose = false
         rendezvousChannel.offer(Unit)
 
+        deactivateVesselGroups()
+        cooldown = 120
+        logger.info { "Vessel controller done, cooldown set to 120 seconds" }
         logger.info { "Control process done" }
     }
 
@@ -91,10 +88,7 @@ class DeckController {
         logger.info { "Activating vessel groups" }
 
         val lights = componentRegistryService.vesselControls
-        val controlsToTurnRed = componentFilterService.blacklist(*lights.toTypedArray())
-        launch {
-            lightController.turnOffLightsDelayed(controlsToTurnRed)
-        }
+        componentFilterService.blacklist(*lights.toTypedArray())
 
         // Turn on warning lights
         componentRegistryService.vesselWarningLights.turnOn(client)
@@ -155,6 +149,7 @@ class DeckController {
 
         // Wait for boats to have passed through
         val wasPassingThrough = vesselSensorListener.passingThrough
+        logger.info { "Passing through $wasPassingThrough" }
         while (vesselSensorListener.passingThrough) {
             delay(1000L)
         }

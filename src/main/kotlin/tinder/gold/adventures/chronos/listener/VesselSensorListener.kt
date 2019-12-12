@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import tinder.gold.adventures.chronos.model.traffic.sensor.VesselSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
+import tinder.gold.adventures.chronos.service.ComponentRegistryService
+import javax.annotation.PostConstruct
 
 /**
  * The vessel sensor listener will keep track of vessels triggering sensors
@@ -15,6 +17,9 @@ class VesselSensorListener : MqttListener<VesselSensor>() {
 
     @Autowired
     override lateinit var client: MqttAsyncClient
+
+    @Autowired
+    private lateinit var componentRegistryService: ComponentRegistryService
 
     final var vesselsEast = false
         private set
@@ -27,6 +32,19 @@ class VesselSensorListener : MqttListener<VesselSensor>() {
 
     final var passingThrough = false
         private set
+
+    @PostConstruct
+    fun init() {
+        launchVesselSensorListeners()
+    }
+
+    /**
+     * Launch listeners for vessel sensors
+     */
+    private fun launchVesselSensorListeners() {
+        componentRegistryService.vesselSensors.values
+                .forEach(::listen)
+    }
 
     override fun callback(topic: String, msg: MqttMessage) {
         val componentId = topic.split("/").last().toInt()

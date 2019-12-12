@@ -29,42 +29,42 @@ class ComponentRegistryService {
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
 
-    private val motorised = hashMapOf(
+    val motorised = hashMapOf(
             CardinalDirection.NORTH to ArrayList<TrafficLight>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
             CardinalDirection.WEST to ArrayList()
     )
 
-    private val motorisedSensors = hashMapOf(
-            CardinalDirection.NORTH to ArrayList<ISensor>(),
+    val motorisedSensors = hashMapOf(
+            CardinalDirection.NORTH to ArrayList<TrafficSensor>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
             CardinalDirection.WEST to ArrayList()
     )
 
-    private val cycle = hashMapOf(
+    val cycle = hashMapOf(
             CardinalDirection.NORTH to ArrayList<TrafficLight>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
             CardinalDirection.WEST to ArrayList()
     )
 
-    private val cycleSensors = hashMapOf(
-            CardinalDirection.NORTH to ArrayList<ISensor>(),
+    val cycleSensors = hashMapOf(
+            CardinalDirection.NORTH to ArrayList<TrafficSensor>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
             CardinalDirection.WEST to ArrayList()
     )
 
-    private val foot = hashMapOf(
+    val foot = hashMapOf(
             CardinalDirection.NORTH to ArrayList<TrafficLight>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
             CardinalDirection.WEST to ArrayList()
     )
 
-    private val footSensors = hashMapOf(
+    val footSensors = hashMapOf(
             CardinalDirection.NORTH to ArrayList<ISensor>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
@@ -162,8 +162,6 @@ class ComponentRegistryService {
         return topic
     }
 
-    fun getMotorisedSensors() = motorisedSensors
-
     @PostConstruct
     fun init() {
         registerControls()
@@ -194,6 +192,10 @@ class ComponentRegistryService {
                 .union(motorised[CardinalDirection.WEST]!!
                         .filter { it.directionTo == CardinalDirection.NORTH })
                 .toList()
+
+        cycleSensors.flatMap { it.value }.forEach {
+            sensorTrackingService.registerCycleSensor(it)
+        }
     }
 
     private fun registerControls() {

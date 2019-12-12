@@ -23,15 +23,10 @@ class TrackController {
     private lateinit var componentRegistryService: ComponentRegistryService
 
     @Autowired
-    private lateinit var lightController: LightController
-
-    @Autowired
     private lateinit var client: MqttAsyncClient
 
     fun activateTrackGroups(direction: CardinalDirection) = runBlocking {
         logger.info { "Activating train groups" }
-
-        val controlsToTurnRed = componentFilterService.blacklist(*componentRegistryService.trackControls.toTypedArray())
 
         GlobalScope.launch(Dispatchers.IO) {
             componentRegistryService.trackWarningLights.turnOn(client)
@@ -46,7 +41,8 @@ class TrackController {
 
             logger.info { "Activated train groups" }
         }
-        lightController.turnOffLightsDelayed(controlsToTurnRed)
+
+        componentFilterService.blacklist(*componentRegistryService.trackControls.toTypedArray())
     }
 
     fun deactivateTrackGroups(direction: CardinalDirection) {

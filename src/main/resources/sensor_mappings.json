@@ -34,5 +34,22 @@
   "motorised/7/traffic_light/0": [
     "motorised/7/sensor/0",
     "motorised/7/sensor/1"
+  ],
+  "cycle/0/traffic_light/0": [
+    "cycle/0/sensor/0"
+  ],
+  "cycle/1/traffic_light/0": [
+    "cycle/1/sensor/0"
+  ],
+  "cycle/2/traffic_light/0": [
+    "cycle/2/sensor/0"
+  ],
+  "cycle/3/traffic_light/0": [
+    "cycle/3/sensor/0",
+    "cycle/3/sensor/1"
+  ],
+  "cycle/4/traffic_light/0": [
+    "cycle/4/sensor/0",
+    "cycle/4/sensor/0"
   ]
 }

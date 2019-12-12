@@ -6,6 +6,7 @@ import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 
+
 class MotorisedTrafficLight(
         directionTo: CardinalDirection
 ) : TrafficLight(

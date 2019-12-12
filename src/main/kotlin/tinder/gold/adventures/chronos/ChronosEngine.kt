@@ -1,22 +1,26 @@
 package tinder.gold.adventures.chronos
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import tinder.gold.adventures.chronos.controller.LightController
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
-import tinder.gold.adventures.chronos.service.ComponentFilterService
-import tinder.gold.adventures.chronos.service.ComponentInfoService
-import tinder.gold.adventures.chronos.service.ComponentSortingService
+import tinder.gold.adventures.chronos.model.traffic.light.CycleTrafficLight
+import tinder.gold.adventures.chronos.service.*
+import java.util.*
 import javax.annotation.PostConstruct
+import kotlin.concurrent.schedule
 
 @Service
 class ChronosEngine {
+
+    companion object {
+        const val cyclistCooldown = 20
+        var cyclistOnCooldown = false
+
+        val clearOnNextUpdate = arrayListOf<TrafficLight>()
+    }
 
     private val logger = KotlinLogging.logger { }
 
@@ -30,19 +34,41 @@ class ChronosEngine {
     private lateinit var componentFilterService: ComponentFilterService
 
     @Autowired
-    private lateinit var lightController: LightController
+    private lateinit var componentRegistryService: ComponentRegistryService
+
+    @Autowired
+    private lateinit var sensorTrackingService: SensorTrackingService
+
+    @Autowired
+    private lateinit var trafficLightTrackingService: TrafficLightTrackingService
 
     @Autowired
     private lateinit var client: MqttAsyncClient
 
     private var activeLights = arrayListOf<TrafficLight>()
-    fun disableActiveLight(light: TrafficLight) {
-        light.turnRed(client)
-        removeActiveLight(light)
+
+    suspend fun addActiveLights(vararg lights: TrafficLight) = withContext(Dispatchers.IO) {
+        lights.forEach { light ->
+            light.turnGreen(client)
+            trafficLightTrackingService.track(light)
+            activeLights.add(light)
+        }
     }
 
-    fun removeActiveLight(light: TrafficLight) {
-        activeLights.remove(light)
+    suspend fun disableActiveLights(vararg lights: TrafficLight) = withContext(Dispatchers.IO) {
+        lights.forEach { light ->
+            light.turnRed(client)
+            activeLights.remove(light)
+        }
+    }
+
+    suspend fun disableActiveLightsWithDelay(vararg lights: TrafficLight) = withContext(Dispatchers.IO) {
+        lights.forEach { light ->
+            light.turnYellow(client)
+            delay(3000L)
+            light.turnRed(client)
+            activeLights.remove(light)
+        }
     }
 
     @PostConstruct
@@ -58,6 +84,9 @@ class ChronosEngine {
     private suspend fun update(): Long {
         logger.info { "Lights timer..." }
 
+        componentFilterService.clear(*clearOnNextUpdate.toTypedArray())
+        checkCyclists()
+
         val groups = componentSortingService.getGroups(componentInfoService.getMotorisedRegistryValues())
         val filtered = componentFilterService.filter(groups)
         val scores = componentSortingService.calculateScores(filtered)
@@ -72,6 +101,37 @@ class ChronosEngine {
         return 8000L
     }
 
+    suspend fun checkCyclists() {
+        if (cyclistOnCooldown) return
+        var any = false
+
+        componentRegistryService.cycleSensors
+                .flatMap { it.value }
+                .filter { sensorTrackingService.getCyclistCount(it.publisher.topic.name) > 0 }
+                .forEach { sensor ->
+                    val values = componentInfoService.getCycleRegistryValues()
+                    val info = values.firstOrNull { info ->
+                        info.sensorComponents.map { it.publisher.topic.name }.contains(sensor.publisher.topic.name)
+                    }
+                    if (info != null) {
+                        any = true
+                        logger.info { "Activating ${info.topic}" }
+                        val blacklist = info.intersectingLanesComponents.map { it.component as TrafficLight }.toTypedArray()
+                        clearOnNextUpdate.addAll(blacklist)
+                        componentFilterService.blacklist(*blacklist)
+                        addActiveLights(info.component!!)
+                    }
+                }
+
+        if (any) {
+            logger.info { "Cyclists going on cooldown for 20s" }
+            cyclistOnCooldown = true
+            Timer().schedule(cyclistCooldown * 1000L) {
+                cyclistOnCooldown = false
+            }
+        }
+    }
+
     suspend fun updateLights(lights: List<TrafficLight>) {
         logger.info { "Updating active group" }
 
@@ -80,13 +140,16 @@ class ChronosEngine {
         }
 
         logger.info { "Enabling new group" }
-        lightController.turnOnLights(lights)
-        activeLights = ArrayList(lights)
+        addActiveLights(*lights.toTypedArray())
     }
 
     suspend fun disableActiveLights() {
         logger.info { "Disabling previous group..." }
-        lightController.turnOffLightsDelayed(activeLights)
+        activeLights.filterIsInstance(CycleTrafficLight::class.java)
+                .forEach {
+                    sensorTrackingService.stopCyclistTimer(it.publisher.topic.name)
+                }
+        disableActiveLightsWithDelay(*activeLights.toTypedArray())
         delay(3000L)
     }
 }

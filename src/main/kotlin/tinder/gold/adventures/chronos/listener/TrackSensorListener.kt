@@ -8,6 +8,8 @@ import tinder.gold.adventures.chronos.controller.TrackController
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrackSensor
 import tinder.gold.adventures.chronos.mqtt.getPayloadString
+import tinder.gold.adventures.chronos.service.ComponentRegistryService
+import javax.annotation.PostConstruct
 
 /**
  * The Track sensor that listens to the sensors of the train track
@@ -22,7 +24,23 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
     @Autowired
     private lateinit var trackController: TrackController
 
+    @Autowired
+    private lateinit var componentRegistryService: ComponentRegistryService
+
     private var trainGroup: Int? = null
+
+    @PostConstruct
+    fun init() {
+        launchTrackSensorListeners()
+    }
+
+    /**
+     * Launch listeners for track sensors
+     */
+    private fun launchTrackSensorListeners() {
+        componentRegistryService.trackSensors.values
+                .forEach(::listen)
+    }
 
     private fun getDirection() = when (trainGroup) {
         0 -> MqttTopicBuilder.CardinalDirection.EAST

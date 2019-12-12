@@ -65,7 +65,7 @@ class ComponentRegistryService {
     )
 
     val footSensors = hashMapOf(
-            CardinalDirection.NORTH to ArrayList<ISensor>(),
+            CardinalDirection.NORTH to ArrayList<TrafficSensor>(),
             CardinalDirection.EAST to ArrayList(),
             CardinalDirection.SOUTH to ArrayList(),
             CardinalDirection.WEST to ArrayList()
@@ -195,6 +195,9 @@ class ComponentRegistryService {
 
         cycleSensors.flatMap { it.value }.forEach {
             sensorTrackingService.registerCycleSensor(it)
+        }
+        footSensors.flatMap { it.value }.forEach {
+            sensorTrackingService.registerFootSensor(it)
         }
     }
 

@@ -39,6 +39,7 @@ class TrafficSensorListener : MqttListener<TrafficSensor>() {
     private fun launchListeners() {
         componentRegistryService.motorisedSensors.values
                 .union(componentRegistryService.cycleSensors.values)
+                .union(componentRegistryService.footSensors.values)
                 .flatten()
                 .forEach(::listen)
     }
@@ -49,6 +50,7 @@ class TrafficSensorListener : MqttListener<TrafficSensor>() {
         when (split[1]) {
             "motorised" -> handleMotorised(topic, msg, componentId)
             "cycle" -> handleCycle(topic, msg)
+            "foot" -> handleFoot(topic, msg)
         }
     }
 
@@ -80,6 +82,14 @@ class TrafficSensorListener : MqttListener<TrafficSensor>() {
         when (val str = msg.getPayloadString()) {
             "0" -> sensorTrackingService.countCyclist(topic, false)
             "1" -> sensorTrackingService.countCyclist(topic)
+            else -> logger.error { "Impossible value on $topic: $str" }
+        }
+    }
+
+    private fun handleFoot(topic: String, msg: MqttMessage) {
+        when (val str = msg.getPayloadString()) {
+            "0" -> sensorTrackingService.countPedastrian(topic, false)
+            "1" -> sensorTrackingService.countPedastrian(topic)
             else -> logger.error { "Impossible value on $topic: $str" }
         }
     }

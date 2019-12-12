@@ -10,10 +10,12 @@ import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.serializable.CycleLaneInfo
+import tinder.gold.adventures.chronos.model.serializable.FootLaneInfo
 import tinder.gold.adventures.chronos.model.serializable.ILaneInfo
 import tinder.gold.adventures.chronos.model.serializable.MotorisedLaneInfo
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.CycleTrafficLight
+import tinder.gold.adventures.chronos.model.traffic.light.FootTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import tinder.gold.adventures.chronos.mqtt.MqttExt
@@ -28,6 +30,7 @@ class ComponentInfoService {
 
     private val motorisedRegistry: HashMap<String, ILaneInfo<MotorisedTrafficLight>> = hashMapOf()
     private val cycleRegistry: HashMap<String, ILaneInfo<CycleTrafficLight>> = hashMapOf()
+    private val footRegistry: HashMap<String, ILaneInfo<FootTrafficLight>> = hashMapOf()
 
     private val json = Json(JsonConfiguration.Stable)
 
@@ -41,11 +44,14 @@ class ComponentInfoService {
     fun init() {
         initRegistry(MotorisedLaneInfo.serializer(), "motorised_info.json", motorisedRegistry)
         initRegistry(CycleLaneInfo.serializer(), "cycle_info.json", cycleRegistry)
+        initRegistry(FootLaneInfo.serializer(), "pedastrian_info.json", footRegistry)
     }
 
     fun getFromMotorisedRegistry(topics: HashSet<String>) = motorisedRegistry.filterKeys { topics.contains(it) }.map { it.value as MotorisedLaneInfo }
     fun getMotorisedRegistryValues() = motorisedRegistry.map { it.value as MotorisedLaneInfo }
     fun getCycleRegistryValues() = cycleRegistry.map { it.value as CycleLaneInfo }
+    fun getFootRegistryValues() = footRegistry.map { it.value as FootLaneInfo }
+    fun getRegistryValues() = cycleRegistry.values.union(footRegistry.values)
 
     private fun <T, R> initRegistry(deserializer: DeserializationStrategy<T>, file: String, registry: HashMap<String, ILaneInfo<R>>) where T : ILaneInfo<R>, R : TrafficLight {
         val content = this::class.java.classLoader.getResource(file)?.readText(Charsets.UTF_8) ?: ""

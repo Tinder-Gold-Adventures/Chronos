@@ -51,5 +51,33 @@
   "cycle/4/traffic_light/0": [
     "cycle/4/sensor/0",
     "cycle/4/sensor/0"
+  ],
+  "foot/0/traffic_light/0": [
+    "foot/0/sensor/0",
+    "foot/0/sensor/1"
+  ],
+  "foot/1/traffic_light/0": [
+    "foot/1/sensor/0",
+    "foot/1/sensor/1"
+  ],
+  "foot/2/traffic_light/0": [
+    "foot/2/sensor/0",
+    "foot/2/sensor/1"
+  ],
+  "foot/3/traffic_light/0": [
+    "foot/3/sensor/0",
+    "foot/3/sensor/1"
+  ],
+  "foot/4/traffic_light/0": [
+    "foot/4/sensor/0",
+    "foot/4/sensor/1"
+  ],
+  "foot/5/traffic_light/0": [
+    "foot/5/sensor/0",
+    "foot/5/sensor/1"
+  ],
+  "foot/6/traffic_light/0": [
+    "foot/6/sensor/0",
+    "foot/6/sensor/1"
   ]
 }

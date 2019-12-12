@@ -111,7 +111,9 @@ class DeckController {
         componentRegistryService.vesselDeck.open(client)
         delay(10000L)
 
-        controlVesselLights()
+        launch(Dispatchers.IO) {
+            controlVesselLights()
+        }
 
         logger.info { "Activated vessel groups" }
     }

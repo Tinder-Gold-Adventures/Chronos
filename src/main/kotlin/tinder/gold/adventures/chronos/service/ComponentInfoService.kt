@@ -61,7 +61,7 @@ class ComponentInfoService {
                     directionFrom = from
                     directionTo = to
                 }
-                incompliantLanes = incompliantLanes.map { "${MqttExt.Connection.TeamId}/$it" }
+                intersectingLanes = intersectingLanes.map { "${MqttExt.Connection.TeamId}/$it" }
                 component = controlRegistryService.getTrafficLight(topic) as MotorisedTrafficLight
                 sensorComponents = component!!.getSensorComponents()
             }
@@ -76,9 +76,9 @@ class ComponentInfoService {
             .map { it as TrafficSensor }
 
     private fun MotorisedLaneInfo.resolveComponents() {
-        this.incompliantLanesComponents = motorisedRegistry.entries.stream()
+        this.intersectingLanesComponents = motorisedRegistry.entries.stream()
                 .filter {
-                    this.incompliantLanes.contains(it.key)
+                    this.intersectingLanes.contains(it.key)
                 }
                 .map { (MutableMap.MutableEntry<String, MotorisedLaneInfo>::value).get(it) }
                 .toList()

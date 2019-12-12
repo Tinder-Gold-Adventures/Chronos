@@ -40,32 +40,30 @@ class ChronosEngine {
     fun init() = runBlocking {
         GlobalScope.launch {
             while (true) {
-                val delayTime = updateLights()
+                val delayTime = update()
                 delay(delayTime)
             }
         }
     }
 
-    private suspend fun updateLights(): Long {
+    private suspend fun update(): Long {
         logger.info { "Lights timer..." }
 
         scoringService.updateScores()
         val lights = scoringService.getScores()
 
         if (lights.any { it.value > 0 }) {
-            val compliantGroups = componentSortingService.getCompliantGroups(lights.map { it.key })
-            val scores = componentSortingService.calculateScores(compliantGroups)
+            val groups = componentSortingService.getGroups(lights.map { it.key })
+            val scores = componentSortingService.calculateScores(groups)
             val highestScore = scores.map { it.second }.max()!!
             val highestScoring = scores.filter { it.second >= highestScore }.random()
             logger.info { "Highest scoring (${highestScoring.second}): ${highestScoring.first.joinToString("\n")}" }
+
             updateLights(highestScoring.first.map { it.component as TrafficLight })
             highestScoring.first.flatMap { it.sensorComponents }.forEach {
                 sensorTrackingService.resetCache(it.publisher.topic.name)
             }
-        } else {
-            logger.info { "NO LIGHTS!" }
         }
-
         // TODO proper propagation of events in the simulator e.g. if activated lanes are empty the new loop can already begin
         return 8000L
     }
@@ -82,7 +80,7 @@ class ChronosEngine {
         activeLights = ArrayList(lights)
     }
 
-    private suspend fun disableActiveLights() {
+    suspend fun disableActiveLights() {
         logger.info { "Disabling previous group..." }
         lightController.turnOffLightsDelayed(activeLights)
         delay(3000L)

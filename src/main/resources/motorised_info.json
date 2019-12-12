@@ -1,7 +1,7 @@
 {
   "motorised/0/traffic_light/0": {
     "direction": "NORTH to EAST",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/4/traffic_light/0",
       "motorised/5/traffic_light/0",
       "motorised/7/traffic_light/0"
@@ -13,7 +13,7 @@
   },
   "motorised/1/traffic_light/0": {
     "direction": "NORTH to SOUTH",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/4/traffic_light/0",
       "motorised/6/traffic_light/0",
       "motorised/7/traffic_light/0",
@@ -28,7 +28,7 @@
   },
   "motorised/2/traffic_light/0": {
     "direction": "NORTH to WEST",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/6/traffic_light/0"
     ],
     "sensors": [
@@ -38,7 +38,7 @@
   },
   "motorised/3/traffic_light/0": {
     "direction": "EAST to NORTH",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/5/traffic_light/0",
       "motorised/7/traffic_light/0"
     ],
@@ -49,7 +49,7 @@
   },
   "motorised/4/traffic_light/0": {
     "direction": "EAST to SOUTH",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/0/traffic_light/0",
       "motorised/1/traffic_light/0",
       "motorised/5/traffic_light/0",
@@ -63,7 +63,7 @@
   },
   "motorised/5/traffic_light/0": {
     "direction": "SOUTH to NORTH",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/0/traffic_light/0",
       "motorised/3/traffic_light/0",
       "motorised/4/traffic_light/0",
@@ -78,7 +78,7 @@
   },
   "motorised/6/traffic_light/0": {
     "direction": "SOUTH to WEST",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/1/traffic_light/0",
       "motorised/2/traffic_light/0",
       "motorised/4/traffic_light/0",
@@ -91,7 +91,7 @@
   },
   "motorised/7/traffic_light/0": {
     "direction": "WEST to NORTH",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/0/traffic_light/0",
       "motorised/1/traffic_light/0",
       "motorised/3/traffic_light/0",
@@ -105,7 +105,7 @@
   },
   "motorised/8/traffic_light/0": {
     "direction": "WEST to SOUTH",
-    "incompliantLanes": [
+    "intersectingLanes": [
       "motorised/1/traffic_light/0",
       "motorised/4/traffic_light/0"
     ],

@@ -13,7 +13,7 @@ class ComponentSortingService {
     @Autowired
     private lateinit var scoringService: ScoringService
 
-    fun calculateScores(infos: List<List<MotorisedLaneInfo>>): List<Pair<List<MotorisedLaneInfo>, Int>> {
+    fun calculateScores(infos: HashSet<List<MotorisedLaneInfo>>): List<Pair<List<MotorisedLaneInfo>, Int>> {
         val scores = arrayListOf<Pair<List<MotorisedLaneInfo>, Int>>()
         infos.forEach {
             val pair = Pair(it, it.sumBy { info -> scoringService.getScore(info) })
@@ -23,19 +23,17 @@ class ComponentSortingService {
         return scores
     }
 
-    fun getCompliantGroups(map: List<MotorisedLaneInfo>): List<List<MotorisedLaneInfo>> {
-        val initialGroups = map.map { map.subtract(it.incompliantLanesComponents).toList() }
-        return getPermutations(initialGroups)
+    fun getGroups(list: List<MotorisedLaneInfo>): HashSet<List<MotorisedLaneInfo>> {
+        val results = hashSetOf<List<MotorisedLaneInfo>>()
+        getGroupPermutations(list, listOf(), results)
+        return results
     }
 
-    private fun getPermutations(origList: List<List<MotorisedLaneInfo>>): List<List<MotorisedLaneInfo>> {
-        val permutations = arrayListOf<List<MotorisedLaneInfo>>()
-        for (subList in origList) {
-            for (i in subList.indices) {
-                if (i == 0) continue
-                permutations.add(subList.subtract(subList[i].incompliantLanesComponents).toList())
-            }
-        }
-        return permutations.toList()
+    private fun getGroupPermutations(nodes: List<MotorisedLaneInfo>, current: List<MotorisedLaneInfo>, resultSets: HashSet<List<MotorisedLaneInfo>>) {
+        val remaining = nodes.minus(current).filter { n -> current.all { !n.intersectingLanesComponents.contains(it) } }
+        if (remaining.count() == 0)
+            resultSets.add(current)
+        for (n in remaining)
+            getGroupPermutations(nodes, current.plus(n), resultSets)
     }
 }

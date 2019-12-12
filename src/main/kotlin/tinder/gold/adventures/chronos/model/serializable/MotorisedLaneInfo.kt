@@ -12,7 +12,7 @@ import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 @Serializable
 data class MotorisedLaneInfo(
         val direction: String,
-        var incompliantLanes: List<String>,
+        var intersectingLanes: List<String>,
         val sensors: List<String>
 ) {
     @Transient
@@ -40,7 +40,7 @@ data class MotorisedLaneInfo(
 
     @Transient
     @ContextualSerialization
-    var incompliantLanesComponents: List<MotorisedLaneInfo> = listOf()
+    var intersectingLanesComponents: List<MotorisedLaneInfo> = listOf()
 
     @Transient
     @ContextualSerialization

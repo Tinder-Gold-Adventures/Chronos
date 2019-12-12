@@ -21,7 +21,7 @@ class ComponentFilterService {
 
     private val blacklistSet = hashSetOf<String>()
 
-    private fun getBlacklisted() = componentInfoService.getFromRegistry(blacklistSet)
+    private fun getBlacklisted() = componentInfoService.getFromMotorisedRegistry(blacklistSet)
 
     fun blacklist(vararg lights: TrafficLight): List<TrafficLight> {
         blacklistSet.addAll(lights.map { it.publisher.topic.name })

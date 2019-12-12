@@ -58,7 +58,7 @@ class ChronosEngine {
     private suspend fun update(): Long {
         logger.info { "Lights timer..." }
 
-        val groups = componentSortingService.getGroups(componentInfoService.getRegistryValues())
+        val groups = componentSortingService.getGroups(componentInfoService.getMotorisedRegistryValues())
         val filtered = componentFilterService.filter(groups)
         val scores = componentSortingService.calculateScores(filtered)
         val highestScore = scores.map { it.second }.max()!!

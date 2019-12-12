@@ -5,16 +5,16 @@ import kotlinx.serialization.Serializable
 import tinder.gold.adventures.chronos.model.mqtt.MqttPublisher
 import tinder.gold.adventures.chronos.model.mqtt.MqttSubscriber
 import tinder.gold.adventures.chronos.model.mqtt.MqttTopic
-import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
-import tinder.gold.adventures.chronos.model.traffic.light.MotorisedTrafficLight
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
+import tinder.gold.adventures.chronos.model.traffic.light.CycleTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 
 @Serializable
-data class MotorisedLaneInfo(
+data class CycleLaneInfo(
         override val direction: String,
         override var intersectingLanes: List<String>,
         override val sensors: List<String>
-) : ILaneInfo<MotorisedTrafficLight> {
+) : ILaneInfo<CycleTrafficLight> {
     @Transient
     override var topic: String = ""
 
@@ -24,11 +24,11 @@ data class MotorisedLaneInfo(
 
     @Transient
     @ContextualSerialization
-    override var directionFrom: CardinalDirection = CardinalDirection.INVALID
+    override var directionFrom: MqttTopicBuilder.CardinalDirection = MqttTopicBuilder.CardinalDirection.INVALID
 
     @Transient
     @ContextualSerialization
-    override var directionTo: CardinalDirection = CardinalDirection.INVALID
+    override var directionTo: MqttTopicBuilder.CardinalDirection = MqttTopicBuilder.CardinalDirection.INVALID
 
     @Transient
     @ContextualSerialization
@@ -44,7 +44,7 @@ data class MotorisedLaneInfo(
 
     @Transient
     @ContextualSerialization
-    override var component: MotorisedTrafficLight? = null
+    override var component: CycleTrafficLight? = null
 
     @Transient
     @ContextualSerialization

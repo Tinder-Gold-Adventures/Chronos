@@ -24,7 +24,7 @@ class ComponentRegistryService {
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var trafficLightTrackingService: TrafficLightTrackingService
+    private lateinit var trackingService: TrackingService
 
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
@@ -155,7 +155,7 @@ class ComponentRegistryService {
             subscriber = mqttTopic.subscriber
         }
         if (control is TrafficLight) {
-            trafficLightTrackingService.register(control)
+            trackingService.register(control)
         } else if (control is TrafficSensor) {
             sensorTrackingService.register(control)
         }

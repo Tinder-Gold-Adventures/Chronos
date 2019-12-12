@@ -1,7 +1,9 @@
 package tinder.gold.adventures.chronos.service
 
 import mu.KotlinLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
@@ -12,6 +14,14 @@ import kotlin.concurrent.fixedRateTimer
 @Service
 class SensorTrackingService {
 
+    companion object {
+        private const val timerPeriod = 10000L
+        private const val increment = 1
+    }
+
+    @Autowired
+    private lateinit var transferService: TransferService
+
     private val logger = KotlinLogging.logger { }
     private val farCounts = hashMapOf<String, Int>()
     private val closeCounts = hashMapOf<String, Int>()
@@ -21,11 +31,11 @@ class SensorTrackingService {
     private val pedastrianTimers = hashMapOf<String, Timer>()
 
     fun countFar(topic: String, add: Boolean = true) {
-        farCounts.edit(topic, add)
+        farCounts.edit(topic, add, change = increment * 2 + 1)
     }
 
     fun countClose(topic: String, add: Boolean = true) {
-        closeCounts.edit(topic, add)
+        closeCounts.edit(topic, add, change = increment * 2)
     }
 
     fun countCyclist(topic: String, add: Boolean = true) {
@@ -41,34 +51,38 @@ class SensorTrackingService {
     fun startCyclistTimer(topic: String) {
         if (cyclistTimers.containsKey(topic)) return
         logger.info { "Starting score counter for $topic" }
-        cyclistTimers[topic] = fixedRateTimer(period = 5000L) {
-            logger.info { "Counting +1 for $topic" }
-            cyclistCounts[topic] = cyclistCounts[topic]!! + 1
+        cyclistTimers[topic] = fixedRateTimer(period = timerPeriod) {
+            cyclistCounts[topic] = cyclistCounts[topic]!! + increment
         }
     }
 
     fun startPedastrianCounter(topic: String) {
         if (pedastrianTimers.containsKey(topic)) return
         logger.info { "Starting score counter for $topic" }
-        pedastrianTimers[topic] = fixedRateTimer(period = 5000L) {
-            logger.info { "Counting +1 for $topic" }
-            pedastrianCounts[topic] = pedastrianCounts[topic]!! + 1
+        pedastrianTimers[topic] = fixedRateTimer(period = timerPeriod) {
+            pedastrianCounts[topic] = pedastrianCounts[topic]!! + increment
         }
     }
 
-    fun stopCyclistTimer(topic: String) {
-        cyclistTimers[topic]?.apply { cancel() }
+    fun stopCyclistTimer(light: TrafficLight) {
+        transferService.getSensorsForTrafficLight(light)
+                .forEach {
+                    cyclistTimers[it]?.apply { cancel() }
+                }
     }
 
-    fun stopPedastrianTimer(topic: String) {
-        pedastrianTimers[topic]?.apply { cancel() }
+    fun stopPedastrianTimer(light: TrafficLight) {
+        transferService.getSensorsForTrafficLight(light)
+                .forEach {
+                    pedastrianTimers[it]?.apply { cancel() }
+                }
     }
 
-    private fun HashMap<String, Int>.edit(topic: String, add: Boolean = true) {
+    private fun HashMap<String, Int>.edit(topic: String, add: Boolean = true, change: Int = increment) {
         if (!this.containsKey(topic)) {
             throw RuntimeException("Map does not contain $topic")
         }
-        this[topic] = this[topic]!! + (if (add) 1 else -1)
+        this[topic] = this[topic]!! + (if (add) change else -change)
     }
 
     fun getCarCount(topic: String) = farCounts[topic]!! + closeCounts[topic]!!
@@ -80,17 +94,17 @@ class SensorTrackingService {
 
     fun register(sensor: TrafficSensor) {
         val topic = sensor.publisher.topic.name
-        farCounts.put(topic, 0)
-        closeCounts.put(topic, 0)
+        farCounts[topic] = 0
+        closeCounts[topic] = 0
     }
 
     fun registerCycleSensor(sensor: TrafficSensor) {
         val topic = sensor.publisher.topic.name
-        cyclistCounts.put(topic, 0)
+        cyclistCounts[topic] = 0
     }
 
     fun registerFootSensor(sensor: TrafficSensor) {
         val topic = sensor.publisher.topic.name
-        pedastrianCounts.put(topic, 0)
+        pedastrianCounts[topic] = 0
     }
 }

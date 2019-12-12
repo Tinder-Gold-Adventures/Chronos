@@ -16,12 +16,14 @@ class ComponentSortingService {
     @Autowired
     private lateinit var sensorTrackingService: SensorTrackingService
 
+    @Autowired
+    private lateinit var trackingService: TrackingService
+
     fun <R> calculateScores(infos: HashSet<List<ILaneInfo<R>>>): List<Pair<List<ILaneInfo<R>>, Int>> where R : TrafficLight {
         val scores = arrayListOf<Pair<List<ILaneInfo<R>>, Int>>()
         infos.forEach {
             val pair = Pair(it, it.sumBy { info -> calculateScore(info) })
             scores.add(pair)
-//            logger.info { "Score ${pair.second}" }
         }
         return scores
     }
@@ -41,12 +43,11 @@ class ComponentSortingService {
     }
 
     private fun <R> calculateScore(info: ILaneInfo<R>): Int where R : TrafficLight {
-//        val component = info.component!!
+        val component = info.component!!
         val carScore = info.sensorComponents.sumBy {
             sensorTrackingService.getCarCount(it.publisher.topic.name)
         }
-//        val timeScore = trafficLightTrackingService.getScore(component)
-        val score = carScore
-        return score
+        val timeScore = trackingService.getScore(component)
+        return carScore + timeScore
     }
 }

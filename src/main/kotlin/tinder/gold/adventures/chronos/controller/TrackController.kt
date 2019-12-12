@@ -10,6 +10,7 @@ import tinder.gold.adventures.chronos.model.traffic.core.IControlBarrier.Barrier
 import tinder.gold.adventures.chronos.model.traffic.core.IWarningLight
 import tinder.gold.adventures.chronos.service.ComponentFilterService
 import tinder.gold.adventures.chronos.service.ComponentRegistryService
+import tinder.gold.adventures.chronos.service.TrackingService
 
 @Component
 class TrackController {
@@ -23,12 +24,19 @@ class TrackController {
     private lateinit var componentRegistryService: ComponentRegistryService
 
     @Autowired
+    private lateinit var trackingService: TrackingService
+
+    @Autowired
     private lateinit var client: MqttAsyncClient
 
-    fun activateTrackGroups(direction: CardinalDirection) = runBlocking {
+    fun activateTrackGroups(direction: CardinalDirection) {
         logger.info { "Activating train groups" }
 
-        componentFilterService.blacklist(*componentRegistryService.trackControlsToBlacklist.toTypedArray())
+        runBlocking {
+            val lights = componentRegistryService.trackControlsToBlacklist
+            lights.forEach { trackingService.trackWaitingTime(it) }
+            componentFilterService.blacklist(*lights.toTypedArray())
+        }
 
         GlobalScope.launch(Dispatchers.IO) {
             componentRegistryService.trackWarningLights.turnOn(client)

@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
  * It also keeps into account lanes that may have been blocked by vessels or trains
  */
 @Service
-class TrafficLightTrackingService {
+class TrackingService {
 
     private val logger = KotlinLogging.logger { }
 
@@ -73,7 +73,7 @@ class TrafficLightTrackingService {
         }
         val value = map[key]!!
         val waitingTime = getWaitingTime(control, timeStamp)
-        return if (value == LocalDateTime.MIN) 0
+        return if (value == LocalDateTime.MIN) 0 + waitingTime
         else (map[key]!!.until(timeStamp ?: LocalDateTime.now(), ChronoUnit.SECONDS).toInt() + waitingTime)
     }
 

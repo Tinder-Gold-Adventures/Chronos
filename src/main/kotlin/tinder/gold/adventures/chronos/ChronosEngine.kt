@@ -5,6 +5,7 @@ import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
 import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.CycleTrafficLight
 import tinder.gold.adventures.chronos.model.traffic.light.FootTrafficLight
@@ -17,10 +18,10 @@ import kotlin.concurrent.schedule
 class ChronosEngine {
 
     companion object {
-        const val lanesCooldown = 20
+        const val lanesCooldown = 40
         var lanesOnCooldown = false
-
         val clearOnNextUpdate = arrayListOf<TrafficLight>()
+        var bridgeMayActivate = true
     }
 
     private val logger = KotlinLogging.logger { }
@@ -41,7 +42,7 @@ class ChronosEngine {
     private lateinit var sensorTrackingService: SensorTrackingService
 
     @Autowired
-    private lateinit var trafficLightTrackingService: TrafficLightTrackingService
+    private lateinit var trackingService: TrackingService
 
     @Autowired
     private lateinit var client: MqttAsyncClient
@@ -51,7 +52,8 @@ class ChronosEngine {
     suspend fun addActiveLights(vararg lights: TrafficLight) = withContext(Dispatchers.IO) {
         lights.forEach { light ->
             light.turnGreen(client)
-            trafficLightTrackingService.track(light)
+            trackingService.track(light)
+            trackingService.resetWaitingTime(light)
             activeLights.add(light)
         }
     }
@@ -96,6 +98,7 @@ class ChronosEngine {
         if (highestScore > 0) {
             val highestScoring = scores.filter { it.second >= highestScore }.random()
             logger.info { "Highest scoring (${highestScoring.second}): ${highestScoring.first.joinToString("\n")}" }
+            bridgeMayActivate = highestScoring.first.none { it.directionTo == MqttTopicBuilder.CardinalDirection.NORTH }
             updateLights(highestScoring.first.map { it.component as TrafficLight })
         }
 
@@ -150,12 +153,12 @@ class ChronosEngine {
         activeLights.filterIsInstance<CycleTrafficLight>()
                 .forEach {
                     logger.info { "Disabling cyclist timer for ${it.topic}" }
-                    sensorTrackingService.stopCyclistTimer(it.topic)
+                    sensorTrackingService.stopCyclistTimer(it)
                 }
         activeLights.filterIsInstance<FootTrafficLight>()
                 .forEach {
                     logger.info { "Disabling pedastrian timer for ${it.topic}" }
-                    sensorTrackingService.stopPedastrianTimer(it.topic)
+                    sensorTrackingService.stopPedastrianTimer(it)
                 }
 
         disableActiveLightsWithDelay(*activeLights.toTypedArray())

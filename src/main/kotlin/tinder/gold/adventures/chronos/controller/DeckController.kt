@@ -6,10 +6,12 @@ import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import tinder.gold.adventures.chronos.ChronosEngine
 import tinder.gold.adventures.chronos.listener.VesselSensorListener
 import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.service.ComponentFilterService
 import tinder.gold.adventures.chronos.service.ComponentRegistryService
+import tinder.gold.adventures.chronos.service.TrackingService
 import javax.annotation.PostConstruct
 
 /**
@@ -33,6 +35,9 @@ class DeckController {
     @Autowired
     private lateinit var componentRegistryService: ComponentRegistryService
 
+    @Autowired
+    private lateinit var trackingService: TrackingService
+
     private var cooldown = 0
 
     @PostConstruct
@@ -40,8 +45,9 @@ class DeckController {
         // launch a new coroutine so we don't block the spring initializer
         GlobalScope.launch {
             while (true) {
-                if (cooldown > 0) {
+                if (cooldown > 0 || !ChronosEngine.bridgeMayActivate) {
                     cooldown--
+                    if (cooldown < 0) cooldown = 0
                     delay(1000)
                     continue
                 }
@@ -88,6 +94,7 @@ class DeckController {
         logger.info { "Activating vessel groups" }
 
         val lights = componentRegistryService.vesselControlsToBlacklist
+        lights.forEach { trackingService.trackWaitingTime(it) }
         componentFilterService.blacklist(*lights.toTypedArray())
 
         // Turn on warning lights

@@ -49,9 +49,9 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
     }
 
     override fun callback(topic: String, msg: MqttMessage) {
-        if (msg.getPayloadString() != "1") return
-
         val componentId = topic.split("/").last().toInt()
+        val payload = msg.getPayloadString()
+        if (payload != "1" && componentId != 1) return
 
         when {
             trainGroup == null -> {
@@ -63,7 +63,9 @@ class TrackSensorListener : MqttListener<TrackSensor>() {
                 }
             }
             componentId == 1 -> {
-                trackController.deactivateTrackGroups(getDirection())
+                if (payload == "0") {
+                    trackController.deactivateTrackGroups(getDirection())
+                }
             }
             else -> {
                 trainGroup = null

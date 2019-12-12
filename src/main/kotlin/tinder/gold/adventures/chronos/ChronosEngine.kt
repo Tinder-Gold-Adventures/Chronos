@@ -17,7 +17,7 @@ import kotlin.concurrent.schedule
 class ChronosEngine {
 
     companion object {
-        const val cyclistCooldown = 20
+        const val lanesCooldown = 20
         var lanesOnCooldown = false
 
         val clearOnNextUpdate = arrayListOf<TrafficLight>()
@@ -104,7 +104,7 @@ class ChronosEngine {
 
     suspend fun checkCyclistsAndPedastrians() {
         if (lanesOnCooldown) return
-        var any = false
+        var anyActivated = false
 
         componentRegistryService.cycleSensors
                 .flatMap { it.value }
@@ -116,7 +116,7 @@ class ChronosEngine {
                         info.sensorComponents.map { it.publisher.topic.name }.contains(sensor.publisher.topic.name)
                     }
                     if (info != null) {
-                        any = true
+                        anyActivated = true
                         logger.info { "Activating ${info.topic}" }
                         val blacklist = info.intersectingLanesComponents.map { it.component as TrafficLight }.toTypedArray()
                         clearOnNextUpdate.addAll(blacklist)
@@ -125,10 +125,10 @@ class ChronosEngine {
                     }
                 }
 
-        if (any) {
+        if (anyActivated) {
             logger.info { "Cyclists and pedastrians going on cooldown for 20s" }
             lanesOnCooldown = true
-            Timer().schedule(cyclistCooldown * 1000L) {
+            Timer().schedule(lanesCooldown * 1000L) {
                 lanesOnCooldown = false
             }
         }

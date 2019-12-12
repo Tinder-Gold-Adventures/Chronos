@@ -28,6 +28,8 @@ class TrackController {
     fun activateTrackGroups(direction: CardinalDirection) = runBlocking {
         logger.info { "Activating train groups" }
 
+        componentFilterService.blacklist(*componentRegistryService.trackControlsToBlacklist.toTypedArray())
+
         GlobalScope.launch(Dispatchers.IO) {
             componentRegistryService.trackWarningLights.turnOn(client)
             delay(5000L)
@@ -41,8 +43,6 @@ class TrackController {
 
             logger.info { "Activated train groups" }
         }
-
-        componentFilterService.blacklist(*componentRegistryService.trackControls.toTypedArray())
     }
 
     fun deactivateTrackGroups(direction: CardinalDirection) {
@@ -59,7 +59,7 @@ class TrackController {
             componentRegistryService.trackWarningLights.turnOff(client)
             check(componentRegistryService.trackWarningLights.state == IWarningLight.WarningLightState.Off)
 
-            componentFilterService.clear(*componentRegistryService.trackControls.toTypedArray())
+            componentFilterService.clear(*componentRegistryService.trackControlsToBlacklist.toTypedArray())
 
             logger.info { "Deactivated train groups" }
         }

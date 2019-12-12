@@ -107,10 +107,10 @@ class ComponentRegistryService {
     private var lights = listOf<TrafficLight>()
     fun getTrafficLight(topic: String) = lights.firstOrNull { it.publisher.topic.name == topic }
 
-    final var vesselControls = listOf<TrafficLight>()
+    final var vesselControlsToBlacklist = listOf<TrafficLight>()
         private set
 
-    final var trackControls = listOf<TrafficLight>()
+    final var trackControlsToBlacklist = listOf<TrafficLight>()
         private set
 
     fun registerTrafficControl(laneType: LaneType, direction: CardinalDirection, control: ITrafficControl) {
@@ -176,7 +176,7 @@ class ComponentRegistryService {
                 .union(foot.map { it.value })
                 .flatten()
 
-        trackControls = motorised[CardinalDirection.SOUTH]!!
+        trackControlsToBlacklist = motorised[CardinalDirection.SOUTH]!!
                 .union(motorised[CardinalDirection.EAST]!!
                         .filter { it.directionTo == CardinalDirection.SOUTH })
                 .union(motorised[CardinalDirection.WEST]!!
@@ -185,7 +185,7 @@ class ComponentRegistryService {
                         .filter { it.directionTo == CardinalDirection.SOUTH })
                 .toList()
 
-        vesselControls = motorised[CardinalDirection.SOUTH]!!
+        vesselControlsToBlacklist = motorised[CardinalDirection.SOUTH]!!
                 .filter { it.directionTo == CardinalDirection.NORTH }
                 .union(motorised[CardinalDirection.EAST]!!
                         .filter { it.directionTo == CardinalDirection.NORTH })

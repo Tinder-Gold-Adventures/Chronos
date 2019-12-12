@@ -87,7 +87,7 @@ class DeckController {
     fun activateVesselGroups() = runBlocking(Dispatchers.IO) {
         logger.info { "Activating vessel groups" }
 
-        val lights = componentRegistryService.vesselControls
+        val lights = componentRegistryService.vesselControlsToBlacklist
         componentFilterService.blacklist(*lights.toTypedArray())
 
         // Turn on warning lights
@@ -165,7 +165,7 @@ class DeckController {
         // Turn off warning lights
         componentRegistryService.vesselWarningLights.turnOff(client)
         // Allow the traffic controls again
-        componentFilterService.clear(*componentRegistryService.vesselControls.toTypedArray())
+        componentFilterService.clear(*componentRegistryService.vesselControlsToBlacklist.toTypedArray())
 
         logger.info { "Deactivated vessel groups" }
     }

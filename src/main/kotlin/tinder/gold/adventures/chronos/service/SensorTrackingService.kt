@@ -3,72 +3,108 @@ package tinder.gold.adventures.chronos.service
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import tinder.gold.adventures.chronos.model.job.SensorCache
-import javax.annotation.PostConstruct
+import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
+import tinder.gold.adventures.chronos.model.traffic.sensor.TrafficSensor
+import java.util.*
+import kotlin.concurrent.fixedRateTimer
 
 /**
- * This service keeps track of sensor values
+ * Responsible for keeping track of sensor values
  */
 @Service
 class SensorTrackingService {
 
-    private val logger = KotlinLogging.logger { }
+    companion object {
+        private const val timerPeriod = 10000L
+        private const val increment = 1
+    }
 
     @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
+    private lateinit var transferService: TransferService
 
-    private val sensorMapCache = hashMapOf<String, SensorCache>()
-    private val sensorMap = hashMapOf<String, Int>()
+    private val logger = KotlinLogging.logger { }
+    private val farCounts = hashMapOf<String, Int>()
+    private val closeCounts = hashMapOf<String, Int>()
+    private val cyclistCounts = hashMapOf<String, Int>()
+    private val pedastrianCounts = hashMapOf<String, Int>()
+    private val cyclistTimers = hashMapOf<String, Timer>()
+    private val pedastrianTimers = hashMapOf<String, Timer>()
 
-    @PostConstruct
-    fun init() {
-        logger.info { "Initializing" }
-        registerControls()
+    fun countFar(topic: String, add: Boolean = true) {
+        farCounts.edit(topic, add, change = increment * 2 + 1)
     }
 
-    fun putSensorValue(topic: String, value: Int) {
-        sensorMap[topic] = value
-        updateCache(topic, value)
+    fun countClose(topic: String, add: Boolean = true) {
+        closeCounts.edit(topic, add, change = increment * 2)
     }
 
-    fun resetCache(topic: String) {
-        sensorMapCache[topic] = SensorCache(0, 0)
+    fun countCyclist(topic: String, add: Boolean = true) {
+        cyclistCounts.edit(topic, add)
+        startCyclistTimer(topic)
     }
 
-    fun isConnected() = sensorMapCache.any()
+    fun countPedastrian(topic: String, add: Boolean = true) {
+        pedastrianCounts.edit(topic, add)
+        startPedastrianCounter(topic)
+    }
 
-    fun getActiveCount(topic: String) = if (!sensorMapCache.containsKey(topic)) 0
-    else sensorMapCache[topic]!!.activeCount
-
-    fun getInactiveCount(topic: String) = if (!sensorMapCache.containsKey(topic)) 0
-    else sensorMapCache[topic]!!.inactiveCount
-
-    private fun updateCache(topic: String, value: Int) {
-        if (!sensorMapCache.containsKey(topic)) {
-            val cacheValue = if (value == 1) SensorCache(1, 0)
-            else SensorCache(0, 1)
-            sensorMapCache[topic] = cacheValue
-        } else {
-            val oldCache = sensorMapCache[topic]!!
-            when (value) {
-                0 -> sensorMapCache[topic] = oldCache.copy(inactiveCount = oldCache.inactiveCount + 1)
-                1 -> sensorMapCache[topic] = oldCache.copy(activeCount = oldCache.activeCount + 1)
-            }
+    fun startCyclistTimer(topic: String) {
+        if (cyclistTimers.containsKey(topic)) return
+        logger.info { "Starting score counter for $topic" }
+        cyclistTimers[topic] = fixedRateTimer(period = timerPeriod) {
+            cyclistCounts[topic] = cyclistCounts[topic]!! + increment
         }
     }
 
-    fun getSensorValue(topic: String): Int = if (sensorMap.containsKey(topic)) sensorMap[topic]!! else 0
+    fun startPedastrianCounter(topic: String) {
+        if (pedastrianTimers.containsKey(topic)) return
+        logger.info { "Starting score counter for $topic" }
+        pedastrianTimers[topic] = fixedRateTimer(period = timerPeriod) {
+            pedastrianCounts[topic] = pedastrianCounts[topic]!! + increment
+        }
+    }
 
-    private fun registerControls() {
-        controlRegistryService.getMotorisedSensors()
-                .forEach { controls ->
-                    controls.value.forEach { sensor ->
-                        val subject = sensor.getMqttTopicBuilderSubject(controls.key)
-                        val mqttTopic = subject.getMqttTopic(sensor)
-                        if (sensorMap.putIfAbsent(mqttTopic, 0) == null) {
-                            logger.info { "Registered $mqttTopic" }
-                        }
-                    }
+    fun stopCyclistTimer(light: TrafficLight) {
+        transferService.getSensorsForTrafficLight(light)
+                .forEach {
+                    cyclistTimers[it]?.apply { cancel() }
                 }
+    }
+
+    fun stopPedastrianTimer(light: TrafficLight) {
+        transferService.getSensorsForTrafficLight(light)
+                .forEach {
+                    pedastrianTimers[it]?.apply { cancel() }
+                }
+    }
+
+    private fun HashMap<String, Int>.edit(topic: String, add: Boolean = true, change: Int = increment) {
+        if (!this.containsKey(topic)) {
+            throw RuntimeException("Map does not contain $topic")
+        }
+        this[topic] = this[topic]!! + (if (add) change else -change)
+    }
+
+    fun getCarCount(topic: String) = farCounts[topic]!! + closeCounts[topic]!!
+    fun getCyclistCount(topic: String) = cyclistCounts[topic]!!
+    fun getPedastrianCount(topic: String) = pedastrianCounts[topic]!!
+    fun getCount(topic: String) = if (cyclistCounts.containsKey(topic)) getCyclistCount(topic)
+    else if (pedastrianCounts.containsKey(topic)) getPedastrianCount(topic)
+    else 0
+
+    fun register(sensor: TrafficSensor) {
+        val topic = sensor.publisher.topic.name
+        farCounts[topic] = 0
+        closeCounts[topic] = 0
+    }
+
+    fun registerCycleSensor(sensor: TrafficSensor) {
+        val topic = sensor.publisher.topic.name
+        cyclistCounts[topic] = 0
+    }
+
+    fun registerFootSensor(sensor: TrafficSensor) {
+        val topic = sensor.publisher.topic.name
+        pedastrianCounts[topic] = 0
     }
 }

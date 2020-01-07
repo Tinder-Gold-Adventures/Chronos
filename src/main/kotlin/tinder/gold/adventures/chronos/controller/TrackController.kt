@@ -1,20 +1,16 @@
 package tinder.gold.adventures.chronos.controller
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder
+import tinder.gold.adventures.chronos.model.mqtt.builder.MqttTopicBuilder.CardinalDirection
 import tinder.gold.adventures.chronos.model.traffic.core.IControlBarrier.BarrierState
 import tinder.gold.adventures.chronos.model.traffic.core.IWarningLight
-import tinder.gold.adventures.chronos.model.traffic.core.TrafficLight
-import tinder.gold.adventures.chronos.service.ControlRegistryService
-import tinder.gold.adventures.chronos.service.GroupingService
-import tinder.gold.adventures.chronos.service.TrafficFilterService
+import tinder.gold.adventures.chronos.service.ComponentFilterService
+import tinder.gold.adventures.chronos.service.ComponentRegistryService
+import tinder.gold.adventures.chronos.service.TrackingService
 
 @Component
 class TrackController {
@@ -22,51 +18,58 @@ class TrackController {
     private val logger = KotlinLogging.logger { }
 
     @Autowired
-    private lateinit var trafficFilterService: TrafficFilterService
+    private lateinit var componentFilterService: ComponentFilterService
 
     @Autowired
-    private lateinit var controlRegistryService: ControlRegistryService
+    private lateinit var componentRegistryService: ComponentRegistryService
 
     @Autowired
-    private lateinit var lightController: LightController
+    private lateinit var trackingService: TrackingService
 
     @Autowired
     private lateinit var client: MqttAsyncClient
 
-    fun activateTrackGroups(direction: MqttTopicBuilder.CardinalDirection) = runBlocking {
+    fun activateTrackGroups(direction: CardinalDirection) {
         logger.info { "Activating train groups" }
 
-        val controlsToTurnRed = trafficFilterService.blockTrafficLights(GroupingService.Controls.TrainControls.map { it as TrafficLight })
-        launch(Dispatchers.IO) {
-            controlRegistryService.trackWarningLights.turnOn(client)
+        runBlocking {
+            val lights = componentRegistryService.trackControlsToBlacklist
+            lights.forEach { trackingService.trackWaitingTime(it) }
+            componentFilterService.blacklist(*lights.toTypedArray())
+        }
+
+        GlobalScope.launch(Dispatchers.IO) {
+            componentRegistryService.trackWarningLights.turnOn(client)
             delay(5000L)
-            controlRegistryService.trackBarriers.close(client)
+            componentRegistryService.trackBarriers.close(client)
             delay(4000L)
 
-            check(controlRegistryService.trackBarriers.state == BarrierState.Closed)
-            check(controlRegistryService.trackWarningLights.state == IWarningLight.WarningLightState.On)
+            check(componentRegistryService.trackBarriers.state == BarrierState.Closed)
+            check(componentRegistryService.trackWarningLights.state == IWarningLight.WarningLightState.On)
 
-            controlRegistryService.trackLights[direction]!!.turnGreen(client)
+            componentRegistryService.trackLights[direction]!!.turnGreen(client)
 
             logger.info { "Activated train groups" }
         }
-        lightController.turnOffLightsDelayed(controlsToTurnRed)
     }
 
-    fun deactivateTrackGroups(direction: MqttTopicBuilder.CardinalDirection) = runBlocking(Dispatchers.IO) {
+    fun deactivateTrackGroups(direction: CardinalDirection) {
         logger.info { "Deactivating train groups" }
 
-        controlRegistryService.trackLights[direction]!!.turnRed(client)
+        GlobalScope.launch(Dispatchers.IO) {
+            delay(2000L)
+            componentRegistryService.trackLights[direction]!!.turnRed(client)
 
-        controlRegistryService.trackBarriers.open(client)
-        delay(4000L)
-        check(controlRegistryService.trackBarriers.state == BarrierState.Open)
+            componentRegistryService.trackBarriers.open(client)
+            delay(4000L)
+            check(componentRegistryService.trackBarriers.state == BarrierState.Open)
 
-        controlRegistryService.trackWarningLights.turnOff(client)
-        check(controlRegistryService.trackWarningLights.state == IWarningLight.WarningLightState.Off)
+            componentRegistryService.trackWarningLights.turnOff(client)
+            check(componentRegistryService.trackWarningLights.state == IWarningLight.WarningLightState.Off)
 
-        trafficFilterService.allowTrafficLights(GroupingService.Controls.TrainControls)
+            componentFilterService.clear(*componentRegistryService.trackControlsToBlacklist.toTypedArray())
 
-        logger.info { "Deactivated train groups" }
+            logger.info { "Deactivated train groups" }
+        }
     }
 }

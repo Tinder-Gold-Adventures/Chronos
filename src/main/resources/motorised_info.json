@@ -1,0 +1,117 @@
+{
+  "motorised/0/traffic_light/0": {
+    "direction": "NORTH to EAST",
+    "intersectingLanes": [
+      "motorised/4/traffic_light/0",
+      "motorised/5/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/0/sensor/0",
+      "motorised/0/sensor/1"
+    ]
+  },
+  "motorised/1/traffic_light/0": {
+    "direction": "NORTH to SOUTH",
+    "intersectingLanes": [
+      "motorised/4/traffic_light/0",
+      "motorised/6/traffic_light/0",
+      "motorised/7/traffic_light/0",
+      "motorised/8/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/1/sensor/0",
+      "motorised/1/sensor/1",
+      "motorised/1/sensor/2",
+      "motorised/1/sensor/3"
+    ]
+  },
+  "motorised/2/traffic_light/0": {
+    "direction": "NORTH to WEST",
+    "intersectingLanes": [
+      "motorised/6/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/2/sensor/0",
+      "motorised/2/sensor/1"
+    ]
+  },
+  "motorised/3/traffic_light/0": {
+    "direction": "EAST to NORTH",
+    "intersectingLanes": [
+      "motorised/5/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/3/sensor/0",
+      "motorised/3/sensor/1"
+    ]
+  },
+  "motorised/4/traffic_light/0": {
+    "direction": "EAST to SOUTH",
+    "intersectingLanes": [
+      "motorised/0/traffic_light/0",
+      "motorised/1/traffic_light/0",
+      "motorised/5/traffic_light/0",
+      "motorised/6/traffic_light/0",
+      "motorised/8/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/4/sensor/0",
+      "motorised/4/sensor/1"
+    ]
+  },
+  "motorised/5/traffic_light/0": {
+    "direction": "SOUTH to NORTH",
+    "intersectingLanes": [
+      "motorised/0/traffic_light/0",
+      "motorised/3/traffic_light/0",
+      "motorised/4/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/5/sensor/0",
+      "motorised/5/sensor/1",
+      "motorised/5/sensor/2",
+      "motorised/5/sensor/3"
+    ]
+  },
+  "motorised/6/traffic_light/0": {
+    "direction": "SOUTH to WEST",
+    "intersectingLanes": [
+      "motorised/1/traffic_light/0",
+      "motorised/2/traffic_light/0",
+      "motorised/4/traffic_light/0",
+      "motorised/7/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/6/sensor/0",
+      "motorised/6/sensor/1"
+    ]
+  },
+  "motorised/7/traffic_light/0": {
+    "direction": "WEST to NORTH",
+    "intersectingLanes": [
+      "motorised/0/traffic_light/0",
+      "motorised/1/traffic_light/0",
+      "motorised/3/traffic_light/0",
+      "motorised/5/traffic_light/0",
+      "motorised/6/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/7/sensor/0",
+      "motorised/7/sensor/1"
+    ]
+  },
+  "motorised/8/traffic_light/0": {
+    "direction": "WEST to SOUTH",
+    "intersectingLanes": [
+      "motorised/1/traffic_light/0",
+      "motorised/4/traffic_light/0"
+    ],
+    "sensors": [
+      "motorised/8/sensor/0",
+      "motorised/8/sensor/1"
+    ]
+  }
+}

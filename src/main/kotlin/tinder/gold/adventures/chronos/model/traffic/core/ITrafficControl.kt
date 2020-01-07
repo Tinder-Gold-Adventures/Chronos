@@ -17,9 +17,11 @@ interface ITrafficControl {
     val laneType: LaneType
     val componentType: ComponentType
 
-    var publisher : MqttPublisher
-    var subscriber : MqttSubscriber
+    var publisher: MqttPublisher
+    var subscriber: MqttSubscriber
 
-    fun getMqttTopicBuilderSubject(cardinalDirection: CardinalDirection)
-            = MqttTopicBuilderSubject(laneType, cardinalDirection, componentType)
+    val topic: String
+        get() = publisher.topic.name
+
+    fun getMqttTopicBuilderSubject(cardinalDirection: CardinalDirection) = MqttTopicBuilderSubject(laneType, cardinalDirection, componentType)
 }

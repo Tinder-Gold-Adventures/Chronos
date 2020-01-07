@@ -10,7 +10,7 @@ class CycleTrafficLight(
         directionTo: CardinalDirection
 ) : TrafficLight(
         directionTo,
-        MqttTopicBuilder.LaneType.MOTORISED,
+        MqttTopicBuilder.LaneType.CYCLE,
         MqttTopicBuilder.ComponentType.TRAFFIC_LIGHT
 ) {
     override lateinit var publisher: MqttPublisher
